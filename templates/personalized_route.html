@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block title %}Career Roadmap - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Your Career Roadmap</h1>
+    <p>A comprehensive action plan with learning resources, tailored to your faculty and major</p>
+</div>
+
+<div class="page-container">
+    <!-- Configuration Panel -->
+    <div class="roadmap-config-panel">
+        <h3>Configure Your Roadmap</h3>
+        <div class="config-grid">
+            <div class="form-group">
+                <label>Faculty</label>
+                <select class="form-control" id="routeFaculty" onchange="updateMajors()">
+                    <option value="">Select faculty...</option>
+                    <option value="business">Business & Economics</option>
+                    <option value="engineering">Engineering</option>
+                    <option value="science">Science</option>
+                    <option value="arts">Arts & Humanities</option>
+                    <option value="social_sciences">Social Sciences</option>
+                    <option value="law">Law</option>
+                    <option value="medicine">Medicine & Health</option>
+                    <option value="education">Education</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Major / Specialization</label>
+                <select class="form-control" id="routeMajor">
+                    <option value="">Select major...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Current Year</label>
+                <select class="form-control" id="routeYear">
+                    <option value="1">Year 1 (Freshman)</option>
+                    <option value="2">Year 2 (Sophomore)</option>
+                    <option value="3">Year 3 (Junior)</option>
+                    <option value="4">Year 4 (Senior)</option>
+                    <option value="postgrad">Postgraduate</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Career Goal</label>
+                <select class="form-control" id="careerGoal">
+                    <option value="corporate">Corporate / Industry</option>
+                    <option value="finance">Finance / Banking</option>
+                    <option value="consulting">Consulting</option>
+                    <option value="tech">Tech / Startup</option>
+                    <option value="government">Government / Public Sector</option>
+                    <option value="academia">Academia / Research</option>
+                    <option value="creative">Creative / Media</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-primary btn-generate" onclick="generateRoadmap()">Generate My Roadmap</button>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="roadmap-stats" id="roadmapStats" style="display:none;">
+        <div class="stat-card">
+            <span class="stat-icon">&#x1F4DA;</span>
+            <div class="stat-info">
+                <span class="stat-value" id="totalMilestones">0</span>
+                <span class="stat-label">Milestones</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">&#x2705;</span>
+            <div class="stat-info">
+                <span class="stat-value" id="completedCount">0</span>
+                <span class="stat-label">Completed</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">&#x1F3AF;</span>
+            <div class="stat-info">
+                <span class="stat-value" id="currentPhase">-</span>
+                <span class="stat-label">Current Phase</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div id="timeline" class="timeline" style="display:none;"></div>
+
+    <div id="emptyState" class="empty-state">
+        <div class="icon">&#x1F5FA;</div>
+        <p>Select your faculty, major, and career goal above</p>
+        <p class="hint">We'll generate a personalized roadmap with inline learning resources</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const FACULTY_MAJORS = {
+    business: [
+        {value: "finance", label: "Finance"},
+        {value: "accounting", label: "Accounting"},
+        {value: "economics", label: "Economics"},
+        {value: "marketing", label: "Marketing"},
+        {value: "management", label: "Management"},
+        {value: "international_business", label: "International Business"}
+    ],
+    engineering: [
+        {value: "computer_science", label: "Computer Science"},
+        {value: "software_engineering", label: "Software Engineering"},
+        {value: "electrical", label: "Electrical Engineering"},
+        {value: "mechanical", label: "Mechanical Engineering"},
+        {value: "civil", label: "Civil Engineering"},
+        {value: "data_science", label: "Data Science"}
+    ],
+    science: [
+        {value: "mathematics", label: "Mathematics"},
+        {value: "physics", label: "Physics"},
+        {value: "chemistry", label: "Chemistry"},
+        {value: "biology", label: "Biology"},
+        {value: "statistics", label: "Statistics"}
+    ],
+    arts: [
+        {value: "english", label: "English"},
+        {value: "chinese", label: "Chinese Studies"},
+        {value: "history", label: "History"},
+        {value: "fine_arts", label: "Fine Arts"},
+        {value: "media_studies", label: "Media & Communications"},
+        {value: "languages", label: "Languages & Translation"}
+    ],
+    social_sciences: [
+        {value: "psychology", label: "Psychology"},
+        {value: "sociology", label: "Sociology"},
+        {value: "political_science", label: "Political Science"},
+        {value: "international_relations", label: "International Relations"}
+    ],
+    law: [
+        {value: "llb", label: "LLB"},
+        {value: "jd", label: "JD"},
+        {value: "corporate_law", label: "Corporate Law"}
+    ],
+    medicine: [
+        {value: "medicine", label: "Medicine (MBBS)"},
+        {value: "nursing", label: "Nursing"},
+        {value: "pharmacy", label: "Pharmacy"},
+        {value: "public_health", label: "Public Health"}
+    ],
+    education: [
+        {value: "education", label: "Education"},
+        {value: "early_childhood", label: "Early Childhood"},
+        {value: "special_education", label: "Special Education"}
+    ]
+};
+
+// Faculty-specific resources - comprehensive and specialized
+const FACULTY_RESOURCES = {
+    business: {
+        year1: [
+            {title: "Excel Fundamentals", url: "https://www.coursera.org/learn/excel-essentials", provider: "Coursera", icon: "&#x1F4CA;"},
+            {title: "Accounting Basics", url: "https://www.coursera.org/learn/wharton-accounting", provider: "Wharton", icon: "&#x1F4B0;"},
+            {title: "Economics 101", url: "https://www.khanacademy.org/economics-finance-domain", provider: "Khan Academy", icon: "&#x1F4D6;"}
+        ],
+        year2: [
+            {title: "Bloomberg Market Concepts", url: "https://www.bloomberg.com/professional/product/bloomberg-market-concepts/", provider: "Bloomberg", icon: "&#x1F4C8;"},
+            {title: "Financial Modeling", url: "https://www.wallstreetprep.com/", provider: "Wall Street Prep", icon: "&#x1F4CA;"},
+            {title: "CFA Level 1 Prep", url: "https://www.cfainstitute.org/", provider: "CFA Institute", icon: "&#x1F3C6;"}
+        ],
+        year3: [
+            {title: "Valuation Course", url: "https://www.coursera.org/learn/valuation", provider: "NYU Stern", icon: "&#x1F4B5;"},
+            {title: "M&A Case Studies", url: "https://hbr.org/topic/mergers-and-acquisitions", provider: "HBR", icon: "&#x1F4BC;"},
+            {title: "Interview Prep", url: "https://www.mergersandinquisitions.com/", provider: "M&I", icon: "&#x1F3AF;"}
+        ],
+        year4: [
+            {title: "Professional Networking", url: "https://www.linkedin.com/learning/", provider: "LinkedIn", icon: "&#x1F91D;"},
+            {title: "Industry Reports", url: "https://www.mckinsey.com/featured-insights", provider: "McKinsey", icon: "&#x1F4D1;"}
+        ]
+    },
+    engineering: {
+        year1: [
+            {title: "CS50: Introduction to CS", url: "https://cs50.harvard.edu/", provider: "Harvard", icon: "&#x1F4BB;"},
+            {title: "Python for Everybody", url: "https://www.coursera.org/specializations/python", provider: "UMich", icon: "&#x1F40D;"},
+            {title: "Git & GitHub", url: "https://www.codecademy.com/learn/learn-git", provider: "Codecademy", icon: "&#x1F4C2;"}
+        ],
+        year2: [
+            {title: "Data Structures", url: "https://www.coursera.org/specializations/data-structures-algorithms", provider: "UCSD", icon: "&#x1F4CA;"},
+            {title: "LeetCode Practice", url: "https://leetcode.com/", provider: "LeetCode", icon: "&#x1F4DD;"},
+            {title: "AWS Fundamentals", url: "https://aws.amazon.com/training/", provider: "AWS", icon: "&#x2601;"}
+        ],
+        year3: [
+            {title: "System Design", url: "https://www.educative.io/courses/grokking-the-system-design-interview", provider: "Educative", icon: "&#x1F3D7;"},
+            {title: "Docker & Kubernetes", url: "https://www.udemy.com/course/docker-kubernetes/", provider: "Udemy", icon: "&#x1F433;"},
+            {title: "Tech Interview Handbook", url: "https://www.techinterviewhandbook.org/", provider: "Community", icon: "&#x1F4D6;"}
+        ],
+        year4: [
+            {title: "AWS Certification", url: "https://aws.amazon.com/certification/", provider: "AWS", icon: "&#x1F3C5;"},
+            {title: "ML Specialization", url: "https://www.coursera.org/specializations/machine-learning-introduction", provider: "Stanford", icon: "&#x1F916;"}
+        ]
+    },
+    science: {
+        year1: [
+            {title: "Scientific Writing", url: "https://www.coursera.org/learn/sciwrite", provider: "Stanford", icon: "&#x270D;"},
+            {title: "Research Methods", url: "https://www.coursera.org/learn/research-methods", provider: "London", icon: "&#x1F52C;"},
+            {title: "Statistics with R", url: "https://www.coursera.org/specializations/statistics", provider: "Duke", icon: "&#x1F4CA;"}
+        ],
+        year2: [
+            {title: "Laboratory Techniques", url: "https://www.edx.org/learn/biology", provider: "edX", icon: "&#x1F9EA;"},
+            {title: "Data Analysis Python", url: "https://www.datacamp.com/", provider: "DataCamp", icon: "&#x1F40D;"},
+            {title: "Scientific Presentation", url: "https://www.coursera.org/learn/scientific-presentation", provider: "Coursera", icon: "&#x1F399;"}
+        ],
+        year3: [
+            {title: "Grant Writing", url: "https://www.coursera.org/learn/grant-writing", provider: "Coursera", icon: "&#x1F4DD;"},
+            {title: "Research Ethics", url: "https://about.citiprogram.org/", provider: "CITI", icon: "&#x2696;"},
+            {title: "Publication Strategy", url: "https://www.nature.com/nature-masterclasses", provider: "Nature", icon: "&#x1F4D6;"}
+        ],
+        year4: [
+            {title: "PhD Application Guide", url: "https://www.prepscholar.com/gre/blog/", provider: "PrepScholar", icon: "&#x1F393;"},
+            {title: "Research Portfolio", url: "https://www.researchgate.net/", provider: "ResearchGate", icon: "&#x1F4BC;"}
+        ]
+    },
+    arts: {
+        year1: [
+            {title: "Writing & Rhetoric", url: "https://www.coursera.org/learn/writing-editing-words", provider: "Michigan", icon: "&#x270D;"},
+            {title: "Digital Media Basics", url: "https://www.coursera.org/learn/digital-media-creative-cloud", provider: "Adobe", icon: "&#x1F3A8;"},
+            {title: "Public Speaking", url: "https://www.coursera.org/learn/public-speaking", provider: "UW", icon: "&#x1F399;"}
+        ],
+        year2: [
+            {title: "Content Marketing", url: "https://academy.hubspot.com/courses/content-marketing", provider: "HubSpot", icon: "&#x1F4DD;"},
+            {title: "Adobe Creative Suite", url: "https://www.adobe.com/creativecloud/learn.html", provider: "Adobe", icon: "&#x1F3A8;"},
+            {title: "Video Production", url: "https://www.skillshare.com/browse/video-production", provider: "Skillshare", icon: "&#x1F3AC;"}
+        ],
+        year3: [
+            {title: "Portfolio Building", url: "https://www.behance.net/", provider: "Behance", icon: "&#x1F4BC;"},
+            {title: "Social Media Strategy", url: "https://www.coursera.org/learn/social-media-marketing", provider: "Northwestern", icon: "&#x1F4F1;"},
+            {title: "Journalism Ethics", url: "https://www.poynter.org/shop/self-directed-course/", provider: "Poynter", icon: "&#x1F4F0;"}
+        ],
+        year4: [
+            {title: "Personal Branding", url: "https://www.linkedin.com/learning/personal-branding-on-social-media", provider: "LinkedIn", icon: "&#x2728;"},
+            {title: "Freelance Business", url: "https://www.skillshare.com/browse/freelance", provider: "Skillshare", icon: "&#x1F4BC;"}
+        ]
+    },
+    law: {
+        year1: [
+            {title: "Legal Research Basics", url: "https://www.coursera.org/learn/legal-research", provider: "Coursera", icon: "&#x1F4DA;"},
+            {title: "Contract Law Fundamentals", url: "https://www.edx.org/learn/contract-law", provider: "Harvard", icon: "&#x1F4DC;"},
+            {title: "Legal Writing Guide", url: "https://www.law.cornell.edu/wex", provider: "Cornell Law", icon: "&#x270D;"}
+        ],
+        year2: [
+            {title: "PCLL Preparation", url: "https://www.pcea.com.hk/", provider: "PCLL", icon: "&#x1F3C6;"},
+            {title: "Mooting Skills", url: "https://www.law.hku.hk/mooting/", provider: "HKU Law", icon: "&#x1F3A4;"},
+            {title: "Commercial Law", url: "https://www.coursera.org/learn/commercial-law", provider: "Coursera", icon: "&#x1F4BC;"}
+        ],
+        year3: [
+            {title: "Legal Internship Guide", url: "https://www.hklawsoc.org.hk/", provider: "HK Law Society", icon: "&#x1F464;"},
+            {title: "Corporate Law Practice", url: "https://www.lexisnexis.com.hk/", provider: "LexisNexis", icon: "&#x1F3E2;"},
+            {title: "Dispute Resolution", url: "https://www.hkiac.org/", provider: "HKIAC", icon: "&#x2696;"}
+        ],
+        year4: [
+            {title: "Trainee Solicitor Apps", url: "https://www.hklawsoc.org.hk/en/Career-Support", provider: "Law Society", icon: "&#x1F4DD;"},
+            {title: "Bar Exam Prep", url: "https://www.hkba.org/", provider: "HK Bar Association", icon: "&#x1F393;"}
+        ]
+    },
+    social_sciences: {
+        year1: [
+            {title: "Social Research Methods", url: "https://www.coursera.org/learn/research-methods", provider: "London", icon: "&#x1F4CA;"},
+            {title: "Introduction to Psychology", url: "https://www.coursera.org/learn/introduction-psychology", provider: "Yale", icon: "&#x1F9E0;"},
+            {title: "Data Analysis for Social Science", url: "https://www.edx.org/learn/data-analysis", provider: "MIT", icon: "&#x1F4C8;"}
+        ],
+        year2: [
+            {title: "SPSS/Stata Training", url: "https://www.ibm.com/training/spss", provider: "IBM", icon: "&#x1F4BB;"},
+            {title: "Survey Design", url: "https://www.qualtrics.com/training/", provider: "Qualtrics", icon: "&#x1F4DD;"},
+            {title: "Policy Analysis", url: "https://www.coursera.org/learn/policy-analysis", provider: "Coursera", icon: "&#x1F4D1;"}
+        ],
+        year3: [
+            {title: "NGO Internship Guide", url: "https://www.hkcss.org.hk/", provider: "HKCSS", icon: "&#x1F91D;"},
+            {title: "Public Policy Research", url: "https://www.cpu.gov.hk/", provider: "HK CPU", icon: "&#x1F3DB;"},
+            {title: "Counseling Skills", url: "https://www.hkpc.org/", provider: "HKPC", icon: "&#x1F4AC;"}
+        ],
+        year4: [
+            {title: "Social Work Registration", url: "https://www.swrb.org.hk/", provider: "SWRB", icon: "&#x1F4DC;"},
+            {title: "Graduate School Apps", url: "https://www.petersons.com/", provider: "Peterson's", icon: "&#x1F393;"}
+        ]
+    },
+    medicine: {
+        year1: [
+            {title: "Anatomy Fundamentals", url: "https://www.coursera.org/learn/anatomy", provider: "Michigan", icon: "&#x1F9B4;"},
+            {title: "Medical Terminology", url: "https://www.edx.org/learn/medicine", provider: "edX", icon: "&#x1F4D6;"},
+            {title: "First Aid Certification", url: "https://www.redcross.org.hk/", provider: "Red Cross HK", icon: "&#x2695;"}
+        ],
+        year2: [
+            {title: "Clinical Skills", url: "https://www.osmosis.org/", provider: "Osmosis", icon: "&#x1FA7A;"},
+            {title: "USMLE Step 1 Prep", url: "https://www.uworld.com/", provider: "UWorld", icon: "&#x1F4DD;"},
+            {title: "Medical Ethics", url: "https://www.coursera.org/learn/medical-ethics", provider: "Coursera", icon: "&#x2696;"}
+        ],
+        year3: [
+            {title: "Clinical Rotations Guide", url: "https://www.mchk.org.hk/", provider: "MCHK", icon: "&#x1F3E5;"},
+            {title: "Research Methodology", url: "https://www.cochranelibrary.com/", provider: "Cochrane", icon: "&#x1F52C;"},
+            {title: "Specialty Selection", url: "https://www.hkam.org.hk/", provider: "HK Academy of Medicine", icon: "&#x1F9D1;"}
+        ],
+        year4: [
+            {title: "Internship Applications", url: "https://www.ha.org.hk/", provider: "Hospital Authority", icon: "&#x1F4DD;"},
+            {title: "Licensing Exam Prep", url: "https://www.mchk.org.hk/", provider: "MCHK", icon: "&#x1F393;"}
+        ]
+    },
+    education: {
+        year1: [
+            {title: "Foundations of Teaching", url: "https://www.coursera.org/learn/foundations-teaching", provider: "Coursera", icon: "&#x1F4DA;"},
+            {title: "Child Development", url: "https://www.edx.org/learn/child-development", provider: "Harvard", icon: "&#x1F476;"},
+            {title: "Educational Psychology", url: "https://www.coursera.org/learn/educational-psychology", provider: "Coursera", icon: "&#x1F9E0;"}
+        ],
+        year2: [
+            {title: "Classroom Management", url: "https://www.coursera.org/learn/classroom-management", provider: "Coursera", icon: "&#x1F3EB;"},
+            {title: "EdTech Tools", url: "https://www.iste.org/", provider: "ISTE", icon: "&#x1F4BB;"},
+            {title: "Curriculum Design", url: "https://www.ascd.org/", provider: "ASCD", icon: "&#x1F4DD;"}
+        ],
+        year3: [
+            {title: "PGDE Preparation", url: "https://www.eduhk.hk/", provider: "EdUHK", icon: "&#x1F393;"},
+            {title: "Teaching Practicum", url: "https://www.edb.gov.hk/", provider: "EDB", icon: "&#x1F464;"},
+            {title: "Special Education Cert", url: "https://www.edb.gov.hk/sen/", provider: "EDB", icon: "&#x2764;"}
+        ],
+        year4: [
+            {title: "Teacher Registration", url: "https://www.edb.gov.hk/", provider: "EDB", icon: "&#x1F4DC;"},
+            {title: "School Applications", url: "https://www.edb.gov.hk/", provider: "EDB", icon: "&#x1F4DD;"}
+        ]
+    }
+};
+
+function updateMajors() {
+    const faculty = document.getElementById('routeFaculty').value;
+    const majorSelect = document.getElementById('routeMajor');
+    majorSelect.innerHTML = '<option value="">Select major...</option>';
+    
+    if (faculty && FACULTY_MAJORS[faculty]) {
+        FACULTY_MAJORS[faculty].forEach(m => {
+            majorSelect.innerHTML += `<option value="${m.value}">${m.label}</option>`;
+        });
+    }
+}
+
+function generateRoadmap() {
+    const faculty = document.getElementById('routeFaculty').value;
+    const major = document.getElementById('routeMajor').value;
+    const year = document.getElementById('routeYear').value;
+    const goal = document.getElementById('careerGoal').value;
+
+    if (!faculty) {
+        showToast('Please select your faculty', 'error');
+        return;
+    }
+
+    const timeline = document.getElementById('timeline');
+    const empty = document.getElementById('emptyState');
+    const stats = document.getElementById('roadmapStats');
+    
+    timeline.innerHTML = '<div class="spinner"></div>';
+    timeline.style.display = 'block';
+    empty.style.display = 'none';
+
+    fetch('/api/generate-roadmap', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            faculty: faculty,
+            major: major,
+            current_year: year,
+            career_goal: goal
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            timeline.innerHTML = '<div class="empty-state"><p>Error generating roadmap.</p></div>';
+            return;
+        }
+
+        // Update stats
+        stats.style.display = 'flex';
+        document.getElementById('totalMilestones').textContent = Object.keys(data.roadmap).length;
+        document.getElementById('completedCount').textContent = data.completed_count || 0;
+        document.getElementById('currentPhase').textContent = data.current_phase || 'Year ' + year;
+
+        // Get faculty-specific resources
+        const facultyResources = FACULTY_RESOURCES[faculty] || FACULTY_RESOURCES['business'];
+
+        // Render timeline with inline resources
+        let html = '';
+        const phases = Object.keys(data.roadmap).sort();
+
+        phases.forEach(phase => {
+            const item = data.roadmap[phase];
+            const statusClass = item.status;
+            const statusLabel = item.status === 'current' ? '&#x1F4CD; You Are Here' :
+                               item.status === 'completed' ? '&#x2705; Completed' : '&#x1F551; Upcoming';
+
+            // Get resources for this phase
+            const phaseResources = facultyResources[phase] || [];
+
+            html += `
+            <div class="timeline-item ${statusClass}">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <span class="year-badge ${statusClass}">${statusLabel}</span>
+                    <h3>${item.title}</h3>
+                    <ul class="task-list">
+                        ${item.tasks.map(task => `<li><span class="task-check">&#x25CB;</span> ${task}</li>`).join('')}
+                    </ul>
+                    ${item.key_skills ? `
+                    <div class="key-skills">
+                        <span class="skills-label">Key Skills to Develop:</span>
+                        <div class="skills-tags">
+                            ${item.key_skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                        </div>
+                    </div>` : ''}
+                    
+                    ${phaseResources.length > 0 ? `
+                    <div class="inline-resources">
+                        <button class="resources-toggle" onclick="toggleResources(this)">
+                            &#x1F4DA; Learning Resources (${phaseResources.length}) <span class="toggle-arrow">&#x25BC;</span>
+                        </button>
+                        <div class="resources-dropdown" style="display:none;">
+                            ${phaseResources.map(r => `
+                                <a href="${r.url}" target="_blank" rel="noopener" class="resource-item">
+                                    <span class="resource-icon">${r.icon}</span>
+                                    <div class="resource-details">
+                                        <span class="resource-title">${r.title}</span>
+                                        <span class="resource-provider">${r.provider}</span>
+                                    </div>
+                                    <span class="resource-ext">&#x2197;</span>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>` : ''}
+                </div>
+            </div>`;
+        });
+
+        timeline.innerHTML = html;
+    })
+    .catch(() => {
+        timeline.innerHTML = '<div class="empty-state"><p>Network error. Please try again.</p></div>';
+    });
+}
+
+function toggleResources(btn) {
+    const dropdown = btn.nextElementSibling;
+    const arrow = btn.querySelector('.toggle-arrow');
+    
+    if (dropdown.style.display === 'none') {
+        dropdown.style.display = 'block';
+        arrow.innerHTML = '&#x25B2;';
+        btn.classList.add('open');
+    } else {
+        dropdown.style.display = 'none';
+        arrow.innerHTML = '&#x25BC;';
+        btn.classList.remove('open');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Career Hub - Career Guidance for HK University Students{% endblock %}
+
+{% block content %}
+<!-- Reminder Carousel with Dynamic Dates -->
+<div class="reminder-carousel">
+    <div class="carousel-track" id="carouselTrack">
+        <div class="reminder-item urgent">
+            <span class="reminder-icon">&#x1F525;</span>
+            <span class="reminder-text">Goldman Sachs Graduate 2026 - Deadline: March 1, 2026</span>
+            <a href="/career-center" class="reminder-link">Apply Now &#x2192;</a>
+        </div>
+        <div class="reminder-item">
+            <span class="reminder-icon">&#x1F4C5;</span>
+            <span class="reminder-text">HKU Career Fair - March 15, 2026 | Central Campus</span>
+            <a href="/career-center" class="reminder-link">Register &#x2192;</a>
+        </div>
+        <div class="reminder-item">
+            <span class="reminder-icon">&#x1F393;</span>
+            <span class="reminder-text">McKinsey HK Summer 2026 Internship - Now Open!</span>
+            <a href="/career-center" class="reminder-link">Learn More &#x2192;</a>
+        </div>
+        <div class="reminder-item new">
+            <span class="reminder-icon">&#x2728;</span>
+            <span class="reminder-text">NEW: Connect with 500+ Verified Alumni Mentors</span>
+            <a href="/career-center" class="reminder-link">Connect &#x2192;</a>
+        </div>
+        <div class="reminder-item">
+            <span class="reminder-icon">&#x1F4DD;</span>
+            <span class="reminder-text">Deloitte Resume Workshop - March 5, 2026</span>
+            <a href="/career-center" class="reminder-link">Sign Up &#x2192;</a>
+        </div>
+        <div class="reminder-item">
+            <span class="reminder-icon">&#x1F3AF;</span>
+            <span class="reminder-text">CUHK Tech Career Panel - March 10, 2026</span>
+            <a href="/career-center" class="reminder-link">RSVP &#x2192;</a>
+        </div>
+        <!-- Duplicate for seamless loop -->
+        <div class="reminder-item urgent">
+            <span class="reminder-icon">&#x1F525;</span>
+            <span class="reminder-text">Goldman Sachs Graduate 2026 - Deadline: March 1, 2026</span>
+            <a href="/career-center" class="reminder-link">Apply Now &#x2192;</a>
+        </div>
+        <div class="reminder-item">
+            <span class="reminder-icon">&#x1F4C5;</span>
+            <span class="reminder-text">HKU Career Fair - March 15, 2026 | Central Campus</span>
+            <a href="/career-center" class="reminder-link">Register &#x2192;</a>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Background -->
+<div class="hero-background-effects">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <canvas id="networkCanvas" class="network-canvas"></canvas>
+</div>
+
+<section class="hero">
+    <div class="hero-particles" id="heroParticles"></div>
+    <div class="hero-content animate-fade-in-up">
+        <div class="hero-badge animate-pulse-subtle">For Hong Kong's Top 8 Universities</div>
+        <h1 class="animate-text-gradient">Navigate Your Career with Confidence</h1>
+        <p class="animate-fade-in-up delay-1">The all-in-one career guidance platform for Hong Kong university students. Discover career paths, assess your competitiveness, and plan your journey from freshman to graduation.</p>
+        <div class="hero-buttons animate-fade-in-up delay-2">
+            <a href="/career-exploration" class="btn btn-primary btn-animated">Explore Careers</a>
+            <a href="/career-center" class="btn btn-secondary btn-animated">Career Center</a>
+            {% if not is_logged_in %}
+            <a href="/register" class="btn btn-accent btn-animated">Sign Up Free</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item animate-count" data-target="30">
+            <h3 class="stat-number">0</h3>
+            <p>Career Paths</p>
+        </div>
+        <div class="stat-item animate-count" data-target="8">
+            <h3 class="stat-number">0</h3>
+            <p>Career Fields</p>
+        </div>
+        <div class="stat-item animate-count" data-target="500">
+            <h3 class="stat-number">0</h3>
+            <p>Alumni Mentors</p>
+        </div>
+        <div class="stat-item animate-count" data-target="8">
+            <h3 class="stat-number">0</h3>
+            <p>HK Universities</p>
+        </div>
+    </div>
+</section>
+
+<section class="features-section">
+    <h2 class="section-title animate-on-scroll">Everything You Need to Succeed</h2>
+    <p class="section-subtitle animate-on-scroll">From exploring careers to landing your dream job, we've got you covered.</p>
+
+    <div class="features-grid">
+        <a href="/career-exploration" class="feature-card animate-on-scroll hover-lift">
+            <div class="feature-icon animate-float" style="background: rgba(99,102,241,0.15);">&#x1F3AF;</div>
+            <h3>Career Exploring</h3>
+            <p>Explore 8 career fields including Finance, Tech, Arts, Academic, Government, and more. View required skills, salary ranges, and career paths.</p>
+        </a>
+
+        <a href="/career-center" class="feature-card animate-on-scroll hover-lift">
+            <div class="feature-icon animate-float" style="background: rgba(14,165,233,0.15);">&#x1F4CA;</div>
+            <h3>Career Center</h3>
+            <p>Self-assessment, personalized roadmaps, alumni networking, CV uploads, and consultation booking - all in one place.</p>
+        </a>
+
+        <a href="/experience-sharing" class="feature-card animate-on-scroll hover-lift">
+            <div class="feature-icon animate-float" style="background: rgba(168,85,247,0.15);">&#x1F4AC;</div>
+            <h3>Experience Sharing</h3>
+            <p>Learn from senior students and alumni. Read and share experiences with tags, search within comments, and custom labels.</p>
+        </a>
+
+        <a href="/dream-jobs" class="feature-card animate-on-scroll hover-lift">
+            <div class="feature-icon animate-float" style="background: rgba(236,72,153,0.15);">&#x2B50;</div>
+            <h3>Dream Job Ranking</h3>
+            <p>Vote for your dream jobs and companies. See what careers and employers students aspire to most.</p>
+        </a>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="cta-content animate-on-scroll">
+        <h2>Ready to Start Your Career Journey?</h2>
+        <p>Join thousands of HK university students already using Career Hub to plan their future.</p>
+        <div class="cta-buttons">
+            {% if is_logged_in %}
+            <a href="/career-center" class="btn btn-primary btn-lg btn-animated">Go to Career Center</a>
+            {% else %}
+            <a href="/register" class="btn btn-primary btn-lg btn-animated btn-glow">Create Free Account</a>
+            <a href="/login" class="btn btn-secondary btn-lg btn-animated">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Intersection Observer for scroll animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate on scroll
+    const animateOnScrollElements = document.querySelectorAll('.animate-on-scroll');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animated');
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    animateOnScrollElements.forEach(el => observer.observe(el));
+    
+    // Counter animation for stats
+    const statNumbers = document.querySelectorAll('.stat-item[data-target]');
+    
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.dataset.target);
+                const numberEl = entry.target.querySelector('.stat-number');
+                animateCounter(numberEl, target);
+                counterObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    statNumbers.forEach(el => counterObserver.observe(el));
+    
+    // Create hero particles
+    createHeroParticles();
+    
+    // Initialize network canvas animation
+    initNetworkCanvas();
+});
+
+function animateCounter(element, target) {
+    if (document.body.classList.contains('reduce-motion')) {
+        element.textContent = target + '+';
+        return;
+    }
+    
+    let current = 0;
+    const increment = target / 40;
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = target + '+';
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(current) + '+';
+        }
+    }, 40);
+}
+
+function createHeroParticles() {
+    const container = document.getElementById('heroParticles');
+    if (!container || document.body.classList.contains('reduce-motion')) return;
+    
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 8 + 's';
+        particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        particle.style.opacity = Math.random() * 0.5 + 0.1;
+        particle.style.width = (Math.random() * 6 + 3) + 'px';
+        particle.style.height = particle.style.width;
+        container.appendChild(particle);
+    }
+}
+
+// Interactive network canvas animation
+function initNetworkCanvas() {
+    const canvas = document.getElementById('networkCanvas');
+    if (!canvas || document.body.classList.contains('reduce-motion')) return;
+    
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = 600;
+    
+    const nodes = [];
+    const nodeCount = 50;
+    const connectionDistance = 150;
+    
+    // Create nodes
+    for (let i = 0; i < nodeCount; i++) {
+        nodes.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.5,
+            radius: Math.random() * 2 + 1
+        });
+    }
+    
+    function animate() {
+        if (document.body.classList.contains('reduce-motion')) return;
+        
+        ctx.clearRect(0, 0, width, height);
+        
+        // Update and draw nodes
+        nodes.forEach(node => {
+            node.x += node.vx;
+            node.y += node.vy;
+            
+            // Bounce off edges
+            if (node.x < 0 || node.x > width) node.vx *= -1;
+            if (node.y < 0 || node.y > height) node.vy *= -1;
+            
+            // Draw node
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.5)';
+            ctx.fill();
+        });
+        
+        // Draw connections
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const dx = nodes[i].x - nodes[j].x;
+                const dy = nodes[i].y - nodes[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < connectionDistance) {
+                    ctx.beginPath();
+                    ctx.moveTo(nodes[i].x, nodes[i].y);
+                    ctx.lineTo(nodes[j].x, nodes[j].y);
+                    ctx.strokeStyle = `rgba(99, 102, 241, ${0.2 * (1 - dist / connectionDistance)})`;
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        requestAnimationFrame(animate);
+    }
+    
+    animate();
+    
+    // Resize handler
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = 600;
+    });
+}
+</script>
+{% endblock %}

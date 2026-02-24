@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Industry Reports - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Industry Reports & Research</h1>
+    <p>Access official reports and research to understand industry trends</p>
+</div>
+
+<div class="page-container">
+    <div class="breadcrumb">
+        <a href="/job-search">Job Search</a> &rsaquo; <span>Industry Reports</span>
+    </div>
+
+    <div class="reports-section">
+        <h2>&#x1F4B0; Finance & Banking</h2>
+        <div class="reports-grid">
+            {% for report in reports.finance %}
+            <a href="{{ report.url }}" target="_blank" rel="noopener" class="report-card" onclick="return confirmLink('{{ report.title }}')">
+                <div class="report-icon">&#x1F4C8;</div>
+                <div class="report-content">
+                    <h4>{{ report.title }}</h4>
+                    <p>{{ report.desc }}</p>
+                    <span class="report-date">{{ report.date }}</span>
+                </div>
+                <span class="ext-badge">External &#x2197;</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="reports-section">
+        <h2>&#x1F4BB; Technology & Innovation</h2>
+        <div class="reports-grid">
+            {% for report in reports.technology %}
+            <a href="{{ report.url }}" target="_blank" rel="noopener" class="report-card" onclick="return confirmLink('{{ report.title }}')">
+                <div class="report-icon">&#x1F680;</div>
+                <div class="report-content">
+                    <h4>{{ report.title }}</h4>
+                    <p>{{ report.desc }}</p>
+                    <span class="report-date">{{ report.date }}</span>
+                </div>
+                <span class="ext-badge">External &#x2197;</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="reports-section">
+        <h2>&#x1F4CA; Employment & Labour Market</h2>
+        <div class="reports-grid">
+            {% for report in reports.employment %}
+            <a href="{{ report.url }}" target="_blank" rel="noopener" class="report-card" onclick="return confirmLink('{{ report.title }}')">
+                <div class="report-icon">&#x1F4BC;</div>
+                <div class="report-content">
+                    <h4>{{ report.title }}</h4>
+                    <p>{{ report.desc }}</p>
+                    <span class="report-date">{{ report.date }}</span>
+                </div>
+                <span class="ext-badge">External &#x2197;</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="more-resources">
+        <h3>Additional Research Resources</h3>
+        <div class="resource-links">
+            <a href="https://research.hktdc.com/" target="_blank" rel="noopener" class="resource-link">
+                HKTDC Research <span>&#x2197;</span>
+            </a>
+            <a href="https://www.censtatd.gov.hk/" target="_blank" rel="noopener" class="resource-link">
+                Census & Statistics <span>&#x2197;</span>
+            </a>
+            <a href="https://www.labour.gov.hk/" target="_blank" rel="noopener" class="resource-link">
+                Labour Department <span>&#x2197;</span>
+            </a>
+            <a href="https://www.fsdc.org.hk/en/publications" target="_blank" rel="noopener" class="resource-link">
+                FSDC Publications <span>&#x2197;</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmLink(title) {
+    return confirm(`Click to jump to "${title}" page. Continue?`);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Profile Settings</h1>
+    <p>Complete your profile to get personalized career recommendations</p>
+</div>
+
+<div class="page-container">
+    <div class="profile-grid">
+        <div class="profile-form card">
+            <h3>Personal Information</h3>
+            <form id="profileForm" onsubmit="saveProfile(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" class="form-control" id="name" placeholder="Your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select class="form-control" id="gender">
+                            <option value="">Select...</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer_not">Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" class="form-control" id="age" placeholder="Age" min="16" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Education Level</label>
+                        <select class="form-control" id="education">
+                            <option value="">Select...</option>
+                            <option value="bachelor">Bachelor's Degree</option>
+                            <option value="master">Master's Degree</option>
+                            <option value="phd">PhD</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Major / Field of Study</label>
+                        <input type="text" class="form-control" id="major" placeholder="e.g., Finance, Computer Science">
+                    </div>
+                    <div class="form-group">
+                        <label>University</label>
+                        <select class="form-control" id="institution">
+                            <option value="">Select...</option>
+                            <option value="HKU">HKU</option>
+                            <option value="CUHK">CUHK</option>
+                            <option value="HKUST">HKUST</option>
+                            <option value="PolyU">PolyU</option>
+                            <option value="CityU">CityU</option>
+                            <option value="HKBU">HKBU</option>
+                            <option value="LingnanU">LingnanU</option>
+                            <option value="EdUHK">EdUHK</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Employment Status</label>
+                    <select class="form-control" id="employment_status">
+                        <option value="">Select...</option>
+                        <option value="student">Student</option>
+                        <option value="employed">Employed</option>
+                        <option value="job_seeking">Job Seeking</option>
+                        <option value="intern">Intern</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <h3 style="margin-top:32px;">Message Settings</h3>
+                <div class="toggle-group">
+                    <label class="toggle-label">
+                        <span>System Notifications</span>
+                        <span class="toggle-desc">Updates, new features, and announcements</span>
+                        <input type="checkbox" id="system_notifications" checked>
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+                <div class="toggle-group">
+                    <label class="toggle-label">
+                        <span>Interactive Messages</span>
+                        <span class="toggle-desc">Likes, comments, and mentions</span>
+                        <input type="checkbox" id="interactive_messages" checked>
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+                <div class="toggle-group">
+                    <label class="toggle-label">
+                        <span>Push Messages</span>
+                        <span class="toggle-desc">Job recommendations and event notifications</span>
+                        <input type="checkbox" id="push_messages">
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+
+                <div class="success-message" id="successMsg" style="display:none;">Profile saved successfully!</div>
+                <div class="error-message" id="errorMsg" style="display:none;"></div>
+
+                <div style="margin-top:24px;">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">Save Profile</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="profile-sidebar">
+            <div class="card">
+                <h3>Verification Status</h3>
+                {% if user and user.verified %}
+                <div class="verification-status approved">
+                    <span class="status-icon">&#x2713;</span>
+                    <span>Verified Student</span>
+                </div>
+                <p style="font-size:0.85rem;color:var(--text-muted);">You have full access to all features.</p>
+                {% else %}
+                <div class="verification-status pending">
+                    <span class="status-icon">!</span>
+                    <span>Not Verified</span>
+                </div>
+                <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">Verify your student status to unlock exclusive features.</p>
+                <a href="/verification" class="btn btn-sm btn-secondary">Verify Now</a>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h3>Quick Links</h3>
+                <ul class="quick-links">
+                    <li><a href="/my-favorites">&#x2605; My Favorites</a></li>
+                    <li><a href="/career-center">&#x2192; Career Center</a></li>
+                    <li><a href="/career-center/planning">&#x2192; Career Planning</a></li>
+                    <li><a href="/experience-sharing">&#x2192; Share Experience</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load existing profile
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/profile')
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && data.profile) {
+            const p = data.profile;
+            if (p.name) document.getElementById('name').value = p.name;
+            if (p.gender) document.getElementById('gender').value = p.gender;
+            if (p.age) document.getElementById('age').value = p.age;
+            if (p.education) document.getElementById('education').value = p.education;
+            if (p.major) document.getElementById('major').value = p.major;
+            if (p.institution) document.getElementById('institution').value = p.institution;
+            if (p.employment_status) document.getElementById('employment_status').value = p.employment_status;
+        }
+        if (data.message_settings) {
+            const m = data.message_settings;
+            document.getElementById('system_notifications').checked = m.system_notifications !== false;
+            document.getElementById('interactive_messages').checked = m.interactive_messages !== false;
+            document.getElementById('push_messages').checked = m.push_messages === true;
+        }
+    });
+});
+
+function saveProfile(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    const errMsg = document.getElementById('errorMsg');
+    const successMsg = document.getElementById('successMsg');
+
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+    errMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+
+    fetch('/api/profile', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            name: document.getElementById('name').value,
+            gender: document.getElementById('gender').value,
+            age: document.getElementById('age').value,
+            education: document.getElementById('education').value,
+            major: document.getElementById('major').value,
+            institution: document.getElementById('institution').value,
+            employment_status: document.getElementById('employment_status').value,
+            system_notifications: document.getElementById('system_notifications').checked,
+            interactive_messages: document.getElementById('interactive_messages').checked,
+            push_messages: document.getElementById('push_messages').checked
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            successMsg.style.display = 'block';
+            setTimeout(() => { successMsg.style.display = 'none'; }, 3000);
+        } else {
+            errMsg.textContent = data.message;
+            errMsg.style.display = 'block';
+        }
+        btn.textContent = 'Save Profile';
+        btn.disabled = false;
+    });
+}
+</script>
+{% endblock %}

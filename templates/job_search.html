@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Job Search - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Job Search Hub</h1>
+    <p>Search real job listings across Hong Kong, Mainland China, and international markets</p>
+</div>
+
+<div class="page-container">
+    <!-- Advanced Search Section -->
+    <div class="advanced-search-panel">
+        <div class="search-row">
+            <input type="text" class="form-control search-main" id="searchQuery" placeholder="Job title, keywords, or company...">
+            <button class="btn btn-primary search-btn" onclick="searchJobs()">Search Jobs</button>
+        </div>
+        
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Region</label>
+                <select class="form-control" id="filterRegion">
+                    <option value="all">All Regions</option>
+                    <option value="hong_kong" selected>Hong Kong (Priority)</option>
+                    <option value="mainland">Mainland China (GBA)</option>
+                    <option value="singapore">Singapore</option>
+                    <option value="international">International</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Industry</label>
+                <select class="form-control" id="filterIndustry">
+                    <option value="all">All Industries</option>
+                    <option value="finance">Finance & Banking</option>
+                    <option value="technology">Technology & IT</option>
+                    <option value="consulting">Consulting</option>
+                    <option value="marketing">Marketing & Advertising</option>
+                    <option value="legal">Legal</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="government">Government & Public</option>
+                    <option value="education">Education</option>
+                    <option value="retail">Retail & E-commerce</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Job Type</label>
+                <select class="form-control" id="filterJobType">
+                    <option value="all">All Types</option>
+                    <option value="full_time">Full-time</option>
+                    <option value="part_time">Part-time</option>
+                    <option value="internship">Internship</option>
+                    <option value="graduate">Graduate Program</option>
+                    <option value="contract">Contract</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Experience</label>
+                <select class="form-control" id="filterExperience">
+                    <option value="all">All Levels</option>
+                    <option value="entry">Entry Level (0-2 yrs)</option>
+                    <option value="junior">Junior (2-4 yrs)</option>
+                    <option value="mid">Mid Level (4-7 yrs)</option>
+                    <option value="senior">Senior (7+ yrs)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Category Buttons -->
+    <div class="category-chips">
+        <span class="chip-label">Popular:</span>
+        <button class="category-chip" onclick="quickSearch('finance analyst', 'hong_kong', 'finance')">Finance HK</button>
+        <button class="category-chip" onclick="quickSearch('software engineer', 'hong_kong', 'technology')">Tech HK</button>
+        <button class="category-chip" onclick="quickSearch('consulting', 'hong_kong', 'consulting')">Consulting</button>
+        <button class="category-chip" onclick="quickSearch('marketing', 'hong_kong', 'marketing')">Marketing</button>
+        <button class="category-chip gba" onclick="quickSearch('graduate', 'mainland', 'all')">GBA Jobs</button>
+        <button class="category-chip" onclick="quickSearch('internship', 'hong_kong', 'all')">Internships</button>
+        <button class="category-chip gov" onclick="quickSearch('government', 'hong_kong', 'government')">Government</button>
+    </div>
+
+    <!-- Region Stats -->
+    <div class="region-stats" id="regionStats">
+        <div class="region-stat hk">
+            <span class="region-flag">&#x1F1ED;&#x1F1F0;</span>
+            <span class="region-name">Hong Kong</span>
+            <span class="region-count" id="hkCount">--</span>
+        </div>
+        <div class="region-stat gba">
+            <span class="region-flag">&#x1F1E8;&#x1F1F3;</span>
+            <span class="region-name">GBA/Mainland</span>
+            <span class="region-count" id="gbaCount">--</span>
+        </div>
+        <div class="region-stat intl">
+            <span class="region-flag">&#x1F30F;</span>
+            <span class="region-name">International</span>
+            <span class="region-count" id="intlCount">--</span>
+        </div>
+    </div>
+
+    <div id="jobResults">
+        <div class="empty-state">
+            <div class="icon">&#x1F50D;</div>
+            <p>Click "Search Jobs" or use a quick filter to find job listings</p>
+            <p class="hint">Hong Kong jobs are prioritized by default</p>
+        </div>
+    </div>
+
+    <!-- Company Research Section -->
+    <div class="company-research-section">
+        <h2>&#x1F50D; Company Research</h2>
+        <p class="section-desc">Research companies before applying. Enter a company name to get quick links to reviews, profiles, and news.</p>
+        <div class="company-search-bar">
+            <input type="text" class="form-control" id="companyName" placeholder="Enter company name (e.g., HSBC, Google, McKinsey)">
+            <button class="btn btn-secondary" onclick="researchCompany()">Research Company</button>
+        </div>
+        <div id="companyLinks" class="company-links" style="display:none;">
+            <a id="glassdoorLink" href="#" target="_blank" rel="noopener" class="company-link-btn">Glassdoor Reviews &#x2197;</a>
+            <a id="linkedinLink" href="#" target="_blank" rel="noopener" class="company-link-btn">LinkedIn Company &#x2197;</a>
+            <a id="newsLink" href="#" target="_blank" rel="noopener" class="company-link-btn">Google News &#x2197;</a>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links-section">
+        <a href="/industry-reports" class="quick-link-card">
+            <span class="ql-icon">&#x1F4C8;</span>
+            <span>Industry Reports</span>
+        </a>
+        <a href="/government-policies" class="quick-link-card">
+            <span class="ql-icon">&#x1F3DB;</span>
+            <span>Government Policies</span>
+        </a>
+        <a href="/dream-jobs" class="quick-link-card">
+            <span class="ql-icon">&#x2B50;</span>
+            <span>Dream Job Ranking</span>
+        </a>
+    </div>
+
+    <div class="resources-section">
+        <h2>Career Resources</h2>
+
+        <div class="resource-tabs">
+            <button class="resource-tab active" onclick="showResources('referrals', this)">Referrals</button>
+            <button class="resource-tab" onclick="showResources('resumes', this)">Resumes</button>
+            <button class="resource-tab" onclick="showResources('interviews', this)">Interviews</button>
+            <button class="resource-tab" onclick="showResources('internships', this)">Internships</button>
+            <button class="resource-tab" onclick="showResources('salaries', this)">Salaries</button>
+            <button class="resource-tab" onclick="showResources('company_research', this)">Company Research</button>
+        </div>
+
+        <div class="resource-list" id="resourceList">
+            {% for item in resources.referrals %}
+            <a href="{{ item.url }}" target="_blank" rel="noopener" class="resource-item" onclick="return confirmLink('{{ item.title }}')">
+                <h4>{{ item.title }} <span class="ext-icon">&#x2197;</span></h4>
+                <p>{{ item.desc }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const allResources = {{ resources | tojson }};
+
+function searchJobs() {
+    const query = document.getElementById('searchQuery').value;
+    const region = document.getElementById('filterRegion').value;
+    const industry = document.getElementById('filterIndustry').value;
+    const jobType = document.getElementById('filterJobType').value;
+    const experience = document.getElementById('filterExperience').value;
+    const resultsDiv = document.getElementById('jobResults');
+
+    resultsDiv.innerHTML = '<div class="spinner"></div><p class="loading-text">Searching jobs across multiple regions...</p>';
+
+    fetch('/api/search-jobs', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            query: query,
+            region: region,
+            industry: industry,
+            job_type: jobType,
+            experience: experience
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        // Update region counts
+        updateRegionCounts(data.region_counts || {});
+        
+        if (!data.success || data.jobs.length === 0) {
+            resultsDiv.innerHTML = '<div class="empty-state"><p>No jobs found. Try adjusting your filters.</p></div>';
+            return;
+        }
+
+        let html = `<div class="results-header">
+            <p class="results-count">Found <strong>${data.jobs.length}</strong> results for "${escapeHtml(data.query)}"</p>
+            <div class="sort-options">
+                <span>Sort by:</span>
+                <button class="sort-btn active" onclick="sortJobs('relevance')">Relevance</button>
+                <button class="sort-btn" onclick="sortJobs('date')">Date</button>
+                <button class="sort-btn" onclick="sortJobs('company')">Company</button>
+            </div>
+        </div>`;
+        html += '<div class="jobs-grid">';
+
+        data.jobs.forEach(job => {
+            const regionClass = getRegionClass(job.region);
+            const regionBadge = getRegionBadge(job.region);
+            const typeBadge = job.job_type ? `<span class="type-badge ${job.job_type}">${formatJobType(job.job_type)}</span>` : '';
+            
+            html += `
+            <div class="job-card ${regionClass}">
+                <div class="job-card-header">
+                    ${regionBadge}
+                    ${typeBadge}
+                </div>
+                <h4>${escapeHtml(job.title)}</h4>
+                <div class="company">${escapeHtml(job.company)}</div>
+                <div class="location">&#x1F4CD; ${escapeHtml(job.location)}</div>
+                ${job.salary ? `<div class="salary">&#x1F4B0; ${escapeHtml(job.salary)}</div>` : ''}
+                <div class="job-meta">
+                    <span class="source">${escapeHtml(job.source)}</span>
+                    ${job.posted ? `<span class="posted">${escapeHtml(job.posted)}</span>` : ''}
+                </div>
+                ${job.link ? `<a href="${escapeHtml(job.link)}" target="_blank" rel="noopener" class="apply-btn" onclick="return confirmLink('${escapeHtml(job.company)}')">View & Apply &#x2197;</a>` : ''}
+            </div>`;
+        });
+
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+    })
+    .catch(() => {
+        resultsDiv.innerHTML = '<div class="empty-state"><p>Error searching jobs. Please try again.</p></div>';
+    });
+}
+
+function updateRegionCounts(counts) {
+    document.getElementById('hkCount').textContent = counts.hong_kong || 0;
+    document.getElementById('gbaCount').textContent = counts.mainland || 0;
+    document.getElementById('intlCount').textContent = (counts.singapore || 0) + (counts.international || 0);
+}
+
+function getRegionClass(region) {
+    switch(region) {
+        case 'hong_kong': return 'region-hk';
+        case 'mainland': return 'region-gba';
+        case 'singapore': return 'region-sg';
+        default: return 'region-intl';
+    }
+}
+
+function getRegionBadge(region) {
+    switch(region) {
+        case 'hong_kong': return '<span class="region-badge hk">&#x1F1ED;&#x1F1F0; HK</span>';
+        case 'mainland': return '<span class="region-badge gba">&#x1F1E8;&#x1F1F3; GBA</span>';
+        case 'singapore': return '<span class="region-badge sg">&#x1F1F8;&#x1F1EC; SG</span>';
+        default: return '<span class="region-badge intl">&#x1F30F; INTL</span>';
+    }
+}
+
+function formatJobType(type) {
+    const types = {
+        'full_time': 'Full-time',
+        'part_time': 'Part-time',
+        'internship': 'Internship',
+        'graduate': 'Graduate',
+        'contract': 'Contract'
+    };
+    return types[type] || type;
+}
+
+function quickSearch(query, region, industry) {
+    document.getElementById('searchQuery').value = query;
+    if (region) document.getElementById('filterRegion').value = region;
+    if (industry) document.getElementById('filterIndustry').value = industry;
+    searchJobs();
+}
+
+function sortJobs(by) {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    // In production, this would re-sort the displayed jobs
+    showToast(`Sorted by ${by}`, 'info');
+}
+
+function showResources(category, btn) {
+    document.querySelectorAll('.resource-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const list = document.getElementById('resourceList');
+    const items = allResources[category] || [];
+
+    let html = '';
+    items.forEach(item => {
+        html += `<a href="${item.url}" target="_blank" rel="noopener" class="resource-item" onclick="return confirmLink('${item.title}')">
+            <h4>${item.title} <span class="ext-icon">&#x2197;</span></h4>
+            <p>${item.desc}</p>
+        </a>`;
+    });
+
+    list.innerHTML = html;
+}
+
+function researchCompany() {
+    const company = document.getElementById('companyName').value.trim();
+    if (!company) {
+        showToast('Please enter a company name', 'error');
+        return;
+    }
+
+    const encodedCompany = encodeURIComponent(company);
+    document.getElementById('glassdoorLink').href = `https://www.glassdoor.com/Search/results.htm?keyword=${encodedCompany}`;
+    document.getElementById('linkedinLink').href = `https://www.linkedin.com/search/results/companies/?keywords=${encodedCompany}`;
+    document.getElementById('newsLink').href = `https://news.google.com/search?q=${encodedCompany}`;
+    document.getElementById('companyLinks').style.display = 'flex';
+}
+
+function confirmLink(name) {
+    return confirm(`Click to jump to ${name} page. Continue?`);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

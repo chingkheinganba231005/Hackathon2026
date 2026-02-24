@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Hottest Posts - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Hottest Posts</h1>
+    <p>Most popular experiences with 20+ likes. See what's trending!</p>
+</div>
+
+<div class="page-container">
+    <div class="exp-header">
+        <div class="time-filter-bar">
+            <button class="time-filter-btn active" data-time="all" onclick="filterByTime('all', this)">All Time</button>
+            <button class="time-filter-btn" data-time="month" onclick="filterByTime('month', this)">This Month</button>
+            <button class="time-filter-btn" data-time="week" onclick="filterByTime('week', this)">This Week</button>
+            <button class="time-filter-btn" data-time="today" onclick="filterByTime('today', this)">Today</button>
+        </div>
+        <a href="/experience-sharing" class="btn btn-secondary">Back to All Posts</a>
+    </div>
+
+    <div class="hottest-stats" id="hottestStats">
+        <span class="stat-item"><strong id="totalHotPosts">0</strong> hot posts</span>
+        <span class="stat-divider">|</span>
+        <span class="stat-item">Min. 20 likes to qualify</span>
+    </div>
+
+    <div id="postsContainer">
+        <div class="spinner"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const currentUserId = '{{ current_user_id or "" }}';
+let currentTimeFilter = 'all';
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadHottestPosts();
+});
+
+function filterByTime(time, btn) {
+    currentTimeFilter = time;
+    // Update active button
+    document.querySelectorAll('.time-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadHottestPosts();
+}
+
+function loadHottestPosts() {
+    const container = document.getElementById('postsContainer');
+    container.innerHTML = '<div class="spinner"></div>';
+
+    fetch(`/api/posts/hottest?time=${currentTimeFilter}`)
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('totalHotPosts').textContent = data.posts ? data.posts.length : 0;
+
+        if (!data.success || !data.posts || data.posts.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">&#x1F525;</div>
+                    <p>No hot posts found for this time period.</p>
+                    <p class="hint">Posts need at least 20 likes to appear here.</p>
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        data.posts.forEach((post, index) => {
+            const initial = post.author.charAt(0).toUpperCase();
+            const categoryLabel = post.category.replace(/_/g, ' ');
+            const isOwner = currentUserId && post.author_id === currentUserId;
+            const userLiked = post.user_liked;
+            const rankBadge = index < 3 ? `<span class="rank-badge rank-${index + 1}">#${index + 1}</span>` : '';
+            const verifiedBadge = post.author_verified ? '<span class="verified-badge-gold" title="Verified Alumni">&#x2714;</span>' : '';
+
+            // Build tags display
+            let tagsHtml = '';
+            if (post.tags && post.tags.length > 0) {
+                tagsHtml = post.tags.map(t => {
+                    const catInfo = getTagCategoryInfo(t.category);
+                    return `<span class="post-tag" style="background:${catInfo.color}20;color:${catInfo.color};border-color:${catInfo.color}">${t.subcategory.replace(/_/g, ' ')}</span>`;
+                }).join('');
+            }
+            if (post.custom_tags && post.custom_tags.length > 0) {
+                tagsHtml += post.custom_tags.map(t =>
+                    `<span class="post-tag custom">${escapeHtml(t)}</span>`
+                ).join('');
+            }
+
+            html += `
+            <div class="post-card hot-post ${post.author_verified ? 'verified-post' : ''}" id="post-${post.id}">
+                <div class="post-meta">
+                    <div class="post-avatar ${post.author_verified ? 'verified-avatar' : ''}">${initial}</div>
+                    <div>
+                        <div class="post-author">${escapeHtml(post.author)} ${verifiedBadge}</div>
+                        <div class="post-info">${post.university} &middot; ${post.created_at}</div>
+                    </div>
+                    ${rankBadge}
+                    <span class="post-badge ${post.category}">${categoryLabel}</span>
+                </div>
+
+                <h3>${escapeHtml(post.title)}</h3>
+                ${tagsHtml ? `<div class="post-tags">${tagsHtml}</div>` : ''}
+                <div class="post-content">${escapeHtml(post.content)}</div>
+
+                <div class="post-actions">
+                    <button class="post-action hot-stat ${userLiked ? 'liked' : ''}" onclick="likePost('${post.id}', this)">
+                        &#x1F525; <span>${post.likes}</span> likes
+                    </button>
+                    <button class="post-action" onclick="toggleComments('${post.id}')">
+                        &#x1F4AC; <span>${post.comments.length} comments</span>
+                    </button>
+                    <button class="post-action fav-btn ${post.user_favorited ? 'favorited' : ''}" onclick="toggleFavorite('${post.id}', this)">
+                        ${post.user_favorited ? '&#x2605;' : '&#x2606;'} <span>${post.user_favorited ? 'Saved' : 'Save'}</span>
+                    </button>
+                </div>
+
+                <div class="comments-section" id="comments-${post.id}" style="display:none;">
+                    ${post.comments.map(c => {
+                        const commentVerified = c.author_verified ? '<span class="verified-badge-gold" title="Verified Alumni">&#x2714;</span>' : '';
+                        const repliesHtml = (c.replies || []).slice(0, 3).map(r => {
+                            const replyVerified = r.author_verified ? '<span class="verified-badge-gold small" title="Verified Alumni">&#x2714;</span>' : '';
+                            return `
+                            <div class="reply">
+                                <span class="reply-author">${escapeHtml(r.author)} ${replyVerified}</span>
+                                <span class="reply-date">&middot; ${r.created_at}</span>
+                                <div class="reply-text">${escapeHtml(r.content)}</div>
+                            </div>
+                        `}).join('');
+                        const hasMoreReplies = (c.replies || []).length > 3;
+                        return `
+                        <div class="comment" id="comment-${c.id}">
+                            <span class="comment-author">${escapeHtml(c.author)} ${commentVerified}</span>
+                            <span class="comment-date">&middot; ${c.created_at}</span>
+                            <div class="comment-text">${escapeHtml(c.content)}</div>
+                            <div class="comment-actions">
+                                <button class="reply-btn" onclick="showReplyInput('${post.id}', '${c.id}')">Reply</button>
+                            </div>
+                            <div class="replies-container" id="replies-${c.id}">
+                                ${repliesHtml}
+                                ${hasMoreReplies ? `<button class="view-more-btn" onclick="showAllReplies('${c.id}', this)">View ${(c.replies || []).length - 3} more replies</button>` : ''}
+                            </div>
+                            <div class="reply-input-box" id="reply-input-box-${c.id}" style="display:none;">
+                                <input type="text" placeholder="Write a reply (max 300 chars)..." maxlength="300" id="reply-input-${c.id}" onkeypress="if(event.key==='Enter')addReply('${post.id}', '${c.id}')">
+                                <button class="btn btn-sm btn-secondary" onclick="addReply('${post.id}', '${c.id}')">Reply</button>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                    <div class="comment-input">
+                        <input type="text" placeholder="Write a comment..." id="comment-input-${post.id}" onkeypress="if(event.key==='Enter')addComment('${post.id}')">
+                        <button class="btn btn-sm btn-primary" onclick="addComment('${post.id}')">Post</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    });
+}
+
+function getTagCategoryInfo(category) {
+    const categories = {{ tag_categories | tojson }};
+    return categories[category] || {color: '#6366f1', label: category};
+}
+
+function likePost(postId, btn) {
+    if (!requireLogin('like posts')) return;
+
+    fetch(`/api/posts/${postId}/like`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (data.liked) {
+                btn.classList.add('liked');
+                showToast('Liked!', 'success');
+            } else {
+                btn.classList.remove('liked');
+                showToast('Like removed', 'info');
+            }
+            btn.querySelector('span').textContent = data.likes;
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function toggleComments(postId) {
+    const section = document.getElementById('comments-' + postId);
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+function addComment(postId) {
+    if (!requireLogin('post comments')) return;
+
+    const input = document.getElementById('comment-input-' + postId);
+    const content = input.value.trim();
+    if (!content) return;
+
+    fetch(`/api/posts/${postId}/comment`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content, anonymous: true})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadHottestPosts();
+            showToast('Comment added!', 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function showReplyInput(postId, commentId) {
+    if (!requireLogin('reply to comments')) return;
+    const box = document.getElementById('reply-input-box-' + commentId);
+    box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+    if (box.style.display === 'flex') {
+        document.getElementById('reply-input-' + commentId).focus();
+    }
+}
+
+function addReply(postId, commentId) {
+    if (!requireLogin('reply to comments')) return;
+
+    const input = document.getElementById('reply-input-' + commentId);
+    const content = input.value.trim();
+    if (!content) return;
+    if (content.length > 300) {
+        showToast('Reply must be 300 characters or less', 'error');
+        return;
+    }
+
+    fetch(`/api/posts/${postId}/comments/${commentId}/reply`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content, anonymous: true})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadHottestPosts();
+            showToast('Reply added!', 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function showAllReplies(commentId, btn) {
+    btn.style.display = 'none';
+    const container = document.getElementById('replies-' + commentId);
+    container.querySelectorAll('.reply').forEach(r => r.style.display = 'block');
+}
+
+function toggleFavorite(postId, btn) {
+    if (!requireLogin('save favorites')) return;
+
+    fetch(`/api/posts/${postId}/favorite`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (data.favorited) {
+                btn.classList.add('favorited');
+                btn.innerHTML = '&#x2605; <span>Saved</span>';
+                showToast('Added to favorites', 'success');
+            } else {
+                btn.classList.remove('favorited');
+                btn.innerHTML = '&#x2606; <span>Save</span>';
+                showToast('Removed from favorites', 'info');
+            }
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

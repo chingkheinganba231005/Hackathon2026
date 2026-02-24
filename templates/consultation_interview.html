@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Mock Interview - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>&#x1F3A4; Mock Interview</h1>
+    <p>Practice interviews with experienced professionals</p>
+</div>
+
+<div class="page-container">
+    <div class="consultation-detail">
+        <div class="detail-hero">
+            <div class="detail-icon">&#x1F3A4;</div>
+            <div class="detail-info">
+                <h2>Mock Interview Session</h2>
+                <p class="detail-tagline">45-60 minute practice interview with detailed feedback</p>
+                <div class="detail-badges">
+                    <span class="badge-free">Free</span>
+                    <span class="badge-available">&#x1F7E2; Book 3 Days Ahead</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-sections">
+            <div class="detail-section">
+                <h3>Interview Types Available</h3>
+                <div class="interview-types-grid">
+                    <div class="interview-type-card">
+                        <div class="type-icon">&#x1F4BC;</div>
+                        <h4>Behavioral Interview</h4>
+                        <p>Practice STAR method responses for common behavioral questions</p>
+                        <ul>
+                            <li>Leadership scenarios</li>
+                            <li>Conflict resolution</li>
+                            <li>Teamwork examples</li>
+                        </ul>
+                    </div>
+                    <div class="interview-type-card">
+                        <div class="type-icon">&#x1F4CA;</div>
+                        <h4>Case Interview</h4>
+                        <p>Consulting-style case studies for strategy roles</p>
+                        <ul>
+                            <li>Market sizing</li>
+                            <li>Profitability analysis</li>
+                            <li>M&A scenarios</li>
+                        </ul>
+                    </div>
+                    <div class="interview-type-card">
+                        <div class="type-icon">&#x1F4BB;</div>
+                        <h4>Technical Interview</h4>
+                        <p>Coding and system design for tech roles</p>
+                        <ul>
+                            <li>Algorithm problems</li>
+                            <li>System design</li>
+                            <li>Code review</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>What You Get</h3>
+                <ul class="feature-list">
+                    <li>&#x2705; Realistic interview simulation</li>
+                    <li>&#x2705; Detailed written feedback report</li>
+                    <li>&#x2705; Specific improvement suggestions</li>
+                    <li>&#x2705; Recording of your session (optional)</li>
+                    <li>&#x2705; Follow-up resources based on performance</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>Schedule Your Mock Interview</h3>
+                <form id="interviewBookingForm" class="booking-form" onsubmit="submitInterviewBooking(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Interview Type</label>
+                            <select class="form-control" id="interviewType" required>
+                                <option value="">Select type...</option>
+                                <option value="behavioral">Behavioral Interview</option>
+                                <option value="case">Case Interview (Consulting)</option>
+                                <option value="technical">Technical Interview (Coding)</option>
+                                <option value="finance">Finance Technical</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Industry</label>
+                            <select class="form-control" id="targetIndustry" required>
+                                <option value="">Select industry...</option>
+                                <option value="finance">Finance & Banking</option>
+                                <option value="consulting">Consulting</option>
+                                <option value="tech">Technology</option>
+                                <option value="general">General Corporate</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Preferred Date</label>
+                            <input type="date" class="form-control" id="interviewDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred Time</label>
+                            <select class="form-control" id="interviewTime" required>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="14:00">2:00 PM</option>
+                                <option value="16:00">4:00 PM</option>
+                                <option value="18:00">6:00 PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Company (Optional)</label>
+                        <input type="text" class="form-control" id="targetCompany" placeholder="e.g., Goldman Sachs, Google, McKinsey">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg btn-full">Schedule Mock Interview</button>
+                </form>
+            </div>
+        </div>
+        <a href="/career-center" class="back-link">&#x2190; Back to Career Centre</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('interviewDate');
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + 3);
+    dateInput.min = minDate.toISOString().split('T')[0];
+});
+
+function submitInterviewBooking(e) {
+    e.preventDefault();
+    if (!requireLogin('schedule mock interviews')) return;
+    const date = document.getElementById('interviewDate').value;
+    const time = document.getElementById('interviewTime').value;
+    const type = document.getElementById('interviewType').value;
+    showToast('Mock ' + type + ' interview scheduled for ' + date + ' at ' + time + '!', 'success');
+    document.getElementById('interviewBookingForm').reset();
+}
+</script>
+{% endblock %}

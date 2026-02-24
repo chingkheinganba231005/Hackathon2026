@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}My Favorites - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>My Favorites</h1>
+    <p>Your saved experience posts and career insights</p>
+</div>
+
+<div class="page-container">
+    <div class="breadcrumb">
+        <a href="/profile">Profile</a> &rsaquo; <span>My Favorites</span>
+    </div>
+
+    <div id="favContainer">
+        <div class="spinner"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', loadFavorites);
+
+function loadFavorites() {
+    const container = document.getElementById('favContainer');
+    fetch('/api/favorites')
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success || data.posts.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="icon">&#x2606;</div><p>No saved posts yet. Browse <a href="/experience-sharing">Experience Sharing</a> and save posts you find helpful.</p></div>';
+            return;
+        }
+
+        let html = `<p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:20px;">${data.posts.length} saved post(s)</p>`;
+        data.posts.forEach(post => {
+            const initial = post.author.charAt(0).toUpperCase();
+            const categoryLabel = post.category.replace(/_/g, ' ');
+
+            html += `
+            <div class="post-card">
+                <div class="post-meta">
+                    <div class="post-avatar">${initial}</div>
+                    <div>
+                        <div class="post-author">${escapeHtml(post.author)}</div>
+                        <div class="post-info">${post.university || ''} &middot; ${post.created_at}</div>
+                    </div>
+                    <span class="post-badge ${post.category}">${categoryLabel}</span>
+                </div>
+                <h3>${escapeHtml(post.title)}</h3>
+                <div class="post-content">${escapeHtml(post.content)}</div>
+                <div class="post-actions">
+                    <span class="post-action">&#x2764; <span>${post.likes}</span></span>
+                    <span class="post-action">&#x1F4AC; <span>${post.comments.length} comments</span></span>
+                    <button class="post-action fav-btn favorited" onclick="removeFavorite('${post.id}', this)">
+                        &#x2605; <span>Remove</span>
+                    </button>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    });
+}
+
+function removeFavorite(postId, btn) {
+    fetch(`/api/posts/${postId}/favorite`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Removed from favorites', 'info');
+            loadFavorites();
+        }
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Career Exploring - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Career Exploring</h1>
+    <p>Select your field to discover matching career paths, skills, and opportunities</p>
+</div>
+
+<div class="page-container">
+    <div class="faculty-selector-large">
+        {% for key, data in career_data.items() %}
+        <button class="faculty-btn-large" onclick="selectFaculty('{{ key }}')" id="btn-{{ key }}">
+            <span class="icon">{{ data.icon }}</span>
+            <span class="label">{{ data.label }}</span>
+        </button>
+        {% endfor %}
+    </div>
+
+    <div id="results" class="roles-grid">
+        <div class="empty-state">
+            <div class="icon">&#x1F446;</div>
+            <p>Select a field above to view matching career paths</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let activeFaculty = null;
+
+function selectFaculty(faculty) {
+    activeFaculty = faculty;
+
+    document.querySelectorAll('.faculty-btn-large').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + faculty).classList.add('active');
+
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '<div class="spinner"></div><p class="loading-text">Finding career matches...</p>';
+
+    fetch('/api/career-match', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({faculty: faculty})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            resultsDiv.innerHTML = '<div class="empty-state"><p>Error loading data</p></div>';
+            return;
+        }
+
+        let html = '<h2 style="margin-bottom:20px;font-size:1.3rem;">Career Paths in ' + data.label + '</h2>';
+
+        data.roles.forEach(role => {
+            // Build companies list with hover dropdown for job links
+            let companiesHtml = '';
+            if (role.companies && Array.isArray(role.companies)) {
+                companiesHtml = role.companies.map((c, idx) => {
+                    const companyName = typeof c === 'object' ? c.name : c;
+                    const companyUrl = typeof c === 'object' ? c.url : null;
+                    const encodedName = encodeURIComponent(companyName);
+                    
+                    return `
+                    <div class="company-dropdown-wrapper" onmouseenter="showDropdown(this)" onmouseleave="hideDropdown(this)">
+                        <button class="company-btn">
+                            ${escapeHtml(companyName)} <span class="dropdown-arrow">&#x25BC;</span>
+                        </button>
+                        <div class="job-links-dropdown">
+                            <div class="dropdown-header">Find jobs at ${escapeHtml(companyName)}</div>
+                            ${companyUrl ? `<a href="${companyUrl}" target="_blank" rel="noopener" class="dropdown-link careers">
+                                <span class="link-icon">&#x1F3E2;</span>
+                                <span>Company Careers</span>
+                                <span class="ext">&#x2197;</span>
+                            </a>` : ''}
+                            <a href="https://www.linkedin.com/jobs/search/?keywords=${encodedName}" target="_blank" rel="noopener" class="dropdown-link linkedin">
+                                <span class="link-icon">in</span>
+                                <span>LinkedIn Jobs</span>
+                                <span class="ext">&#x2197;</span>
+                            </a>
+                            <a href="https://hk.indeed.com/jobs?q=${encodedName}" target="_blank" rel="noopener" class="dropdown-link indeed">
+                                <span class="link-icon">&#x1F50D;</span>
+                                <span>Indeed HK</span>
+                                <span class="ext">&#x2197;</span>
+                            </a>
+                            <a href="https://www.glassdoor.com/Search/results.htm?keyword=${encodedName}" target="_blank" rel="noopener" class="dropdown-link glassdoor">
+                                <span class="link-icon">&#x2B50;</span>
+                                <span>Glassdoor</span>
+                                <span class="ext">&#x2197;</span>
+                            </a>
+                            <a href="https://www.jobsdb.com/hk/search-jobs/${encodedName}" target="_blank" rel="noopener" class="dropdown-link jobsdb">
+                                <span class="link-icon">&#x1F4BC;</span>
+                                <span>JobsDB HK</span>
+                                <span class="ext">&#x2197;</span>
+                            </a>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            // Multi-platform job board links
+            const roleKeyword = encodeURIComponent(role.title);
+            const multiPlatformLinks = `
+                <div class="platform-links">
+                    <span class="platform-label">Search all platforms:</span>
+                    <a href="https://hk.indeed.com/jobs?q=${roleKeyword}" target="_blank" rel="noopener" class="platform-btn indeed" title="Indeed HK">Indeed</a>
+                    <a href="https://www.linkedin.com/jobs/search/?keywords=${roleKeyword}&location=Hong%20Kong" target="_blank" rel="noopener" class="platform-btn linkedin" title="LinkedIn">LinkedIn</a>
+                    <a href="https://www.jobsdb.com/hk/search-jobs/${roleKeyword}" target="_blank" rel="noopener" class="platform-btn jobsdb" title="JobsDB">JobsDB</a>
+                    <a href="https://www.glassdoor.com/Job/hong-kong-${roleKeyword.replace(/%20/g, '-')}-jobs-SRCH_IL.0,9_IC2517317_KO10,50.htm" target="_blank" rel="noopener" class="platform-btn glassdoor" title="Glassdoor">Glassdoor</a>
+                </div>`;
+
+            // Build salary progression
+            const salaryProgression = role.salary_progression ? `
+                <div class="salary-progression">
+                    <div class="salary-header">Salary by Experience Level <span class="source">(Source: Glassdoor HK, PayScale 2025)</span></div>
+                    <div class="salary-stages">
+                        ${role.salary_progression.map(s => `
+                            <div class="salary-stage">
+                                <span class="stage-name">${escapeHtml(s.stage)}</span>
+                                <span class="stage-salary">${escapeHtml(s.salary)}</span>
+                                <span class="stage-years">${escapeHtml(s.years)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>` : `<div class="salary">${escapeHtml(role.avg_salary_hkd)}</div>`;
+
+            // Build traits/characteristics
+            const traitsHtml = role.traits ? `
+                <div class="traits-section">
+                    <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px;font-weight:500;">Key Traits & Characteristics</div>
+                    <div class="traits-list">
+                        ${role.traits.map(t => `<span class="trait-tag">${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                </div>` : '';
+
+            html += `
+            <div class="role-card">
+                <h3>${escapeHtml(role.title)}</h3>
+                <p class="description">${escapeHtml(role.description)}</p>
+                
+                ${salaryProgression}
+
+                ${traitsHtml}
+
+                <div style="margin-bottom:12px">
+                    <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px;font-weight:500;">Required Skills</div>
+                    <div class="skills-list">
+                        ${role.skills.map(s => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('')}
+                    </div>
+                </div>
+
+                <div style="margin-bottom:12px">
+                    <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px;font-weight:500;">Career Path</div>
+                    <div class="career-path">
+                        ${role.career_path.map((step, i) =>
+                            `<span class="step">${escapeHtml(step)}</span>${i < role.career_path.length - 1 ? '<span class="arrow">&#x2192;</span>' : ''}`
+                        ).join('')}
+                    </div>
+                </div>
+
+                <div style="margin-bottom:12px">
+                    <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px;font-weight:500;">Top Companies <span class="hint">(hover for job links)</span></div>
+                    <div class="companies-list-dropdown">
+                        ${companiesHtml}
+                    </div>
+                </div>
+
+                <div class="job-search-section">
+                    <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:8px;font-weight:500;">&#x1F50D; Find ${escapeHtml(role.title)} Jobs</div>
+                    ${multiPlatformLinks}
+                </div>
+            </div>`;
+        });
+
+        resultsDiv.innerHTML = html;
+    })
+    .catch(err => {
+        resultsDiv.innerHTML = '<div class="empty-state"><p>Network error. Please try again.</p></div>';
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Improved dropdown functions with longer timeout
+let currentDropdown = null;
+let dropdownTimer = null;
+
+function showDropdown(wrapper) {
+    clearTimeout(dropdownTimer);
+    // Hide any other open dropdowns
+    if (currentDropdown && currentDropdown !== wrapper) {
+        currentDropdown.querySelector('.job-links-dropdown').classList.remove('show');
+    }
+    currentDropdown = wrapper;
+    wrapper.querySelector('.job-links-dropdown').classList.add('show');
+}
+
+function hideDropdown(wrapper) {
+    dropdownTimer = setTimeout(() => {
+        wrapper.querySelector('.job-links-dropdown').classList.remove('show');
+        if (currentDropdown === wrapper) {
+            currentDropdown = null;
+        }
+    }, 500); // Increased timeout to 500ms for better UX
+}
+</script>
+{% endblock %}

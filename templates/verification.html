@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Student Status - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Student Verification</h1>
+    <p>Verify your student status to unlock exclusive features</p>
+</div>
+
+<div class="page-container" style="max-width:700px;">
+    <div class="card">
+        <div class="verification-info">
+            <h3>Why Verify?</h3>
+            <p>Verified students get access to:</p>
+            <ul class="verify-benefits">
+                <li>&#x2713; Exclusive job postings and referrals</li>
+                <li>&#x2713; Full access to experience sharing</li>
+                <li>&#x2713; Dream job voting and rankings</li>
+                <li>&#x2713; Advanced career exploring features</li>
+            </ul>
+        </div>
+
+        {% if user and user.verified %}
+        <div class="verification-result">
+            <div class="verification-status approved large">
+                <span class="status-icon">&#x2713;</span>
+                <span>Verified Student</span>
+            </div>
+            <p>Your student status has been verified. You have full access to all features.</p>
+            <div style="margin-top:16px;">
+                <a href="/" class="btn btn-primary">Back to Home</a>
+            </div>
+        </div>
+        {% else %}
+        <form id="verifyForm" onsubmit="submitVerification(event)">
+            <div class="form-group">
+                <label>University / Institution *</label>
+                <select class="form-control" id="institution" required>
+                    <option value="">Select your university...</option>
+                    <option value="HKU">The University of Hong Kong (HKU)</option>
+                    <option value="CUHK">The Chinese University of Hong Kong (CUHK)</option>
+                    <option value="HKUST">Hong Kong University of Science and Technology (HKUST)</option>
+                    <option value="PolyU">The Hong Kong Polytechnic University (PolyU)</option>
+                    <option value="CityU">City University of Hong Kong (CityU)</option>
+                    <option value="HKBU">Hong Kong Baptist University (HKBU)</option>
+                    <option value="LingnanU">Lingnan University</option>
+                    <option value="EdUHK">The Education University of Hong Kong (EdUHK)</option>
+                    <option value="other">Other Institution</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Student Number *</label>
+                <input type="text" class="form-control" id="studentNumber" placeholder="e.g., 3035123456" required>
+            </div>
+
+            <div class="form-group">
+                <label>Student ID Photo (Optional)</label>
+                <input type="file" class="form-control" id="studentIdPhoto" accept="image/*">
+                <span class="input-hint">Upload a photo of your student ID to speed up verification</span>
+            </div>
+
+            <div class="verification-status pending" id="pendingStatus" style="display:none;">
+                <span class="status-icon">&#x23F3;</span>
+                <span>Verification in progress...</span>
+            </div>
+
+            <div class="verification-status approved" id="approvedStatus" style="display:none;">
+                <span class="status-icon">&#x2713;</span>
+                <span>Verification Approved!</span>
+            </div>
+
+            <div class="error-message" id="errorMsg" style="display:none;"></div>
+
+            <div style="margin-top:24px;">
+                <button type="submit" class="btn btn-primary" id="verifyBtn">Submit for Verification</button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function submitVerification(e) {
+    e.preventDefault();
+    const btn = document.getElementById('verifyBtn');
+    const errMsg = document.getElementById('errorMsg');
+    const pendingStatus = document.getElementById('pendingStatus');
+    const approvedStatus = document.getElementById('approvedStatus');
+
+    btn.textContent = 'Submitting...';
+    btn.disabled = true;
+    errMsg.style.display = 'none';
+    pendingStatus.style.display = 'flex';
+
+    fetch('/api/verification', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            institution: document.getElementById('institution').value,
+            student_number: document.getElementById('studentNumber').value
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            pendingStatus.style.display = 'none';
+            approvedStatus.style.display = 'flex';
+            btn.style.display = 'none';
+            
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        } else {
+            errMsg.textContent = data.message;
+            errMsg.style.display = 'block';
+            pendingStatus.style.display = 'none';
+            btn.textContent = 'Submit for Verification';
+            btn.disabled = false;
+        }
+    });
+}
+</script>
+{% endblock %}

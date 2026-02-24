@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Career Development Plan - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Career Development Plan</h1>
+    <p>Define your goals and create a roadmap to achieve them</p>
+</div>
+
+<div class="page-container" style="max-width:900px;">
+    <div class="breadcrumb">
+        <a href="/career-center">Career Center</a> &rsaquo; <span>Career Development Plan</span>
+    </div>
+
+    {% if not is_logged_in %}
+    <div class="card" style="text-align:center;padding:40px;">
+        <h3>Login Required</h3>
+        <p style="color:var(--text-muted);margin-bottom:16px;">Please login to create and save your career development plan.</p>
+        <a href="/login" class="btn btn-primary">Login</a>
+        <a href="/register" class="btn btn-secondary" style="margin-left:8px;">Sign Up</a>
+    </div>
+    {% else %}
+    <form id="planForm">
+        <div class="plan-section card">
+            <h3>&#x1F3AF; Short-term Goals (1 Year)</h3>
+            <p class="section-desc">What do you want to achieve in the next 12 months?</p>
+            <div class="form-group">
+                <label>Goal Description</label>
+                <textarea class="form-control" id="shortTermGoal" rows="4" placeholder="e.g., Secure an internship at a Big 4 firm, Complete CFA Level 1, Improve GPA to 3.5..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Key Milestones</label>
+                <textarea class="form-control" id="shortTermMilestones" rows="3" placeholder="List 3-5 specific milestones to track progress..."></textarea>
+            </div>
+        </div>
+
+        <div class="plan-section card">
+            <h3>&#x1F680; Long-term Goals (3-5 Years)</h3>
+            <p class="section-desc">Where do you see yourself in the next 3-5 years?</p>
+            <div class="form-group">
+                <label>Career Position Target</label>
+                <input type="text" class="form-control" id="longTermPosition" placeholder="e.g., Senior Analyst at an investment bank">
+            </div>
+            <div class="form-group">
+                <label>Skills to Develop</label>
+                <textarea class="form-control" id="longTermSkills" rows="3" placeholder="What skills do you need to acquire or improve?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Target Industries / Companies</label>
+                <textarea class="form-control" id="longTermCompanies" rows="2" placeholder="Which industries or companies are you targeting?"></textarea>
+            </div>
+        </div>
+
+        <div class="plan-section card">
+            <h3>&#x1F4DD; Implementation Plan</h3>
+            <p class="section-desc">How will you achieve these goals?</p>
+            <div class="form-group">
+                <label>Monthly Action Items</label>
+                <textarea class="form-control" id="implementation" rows="5" placeholder="Break down your goals into monthly action items. What will you do each month?"></textarea>
+            </div>
+        </div>
+
+        <div class="save-indicator" id="saveIndicator" style="display:none;">
+            <span class="save-icon">&#x2713;</span> Last saved: <span id="saveTime">just now</span>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:24px;">
+            <button type="button" class="btn btn-primary" onclick="savePlan()">Save Plan</button>
+            <a href="/career-center" class="btn btn-secondary">Back to Career Center</a>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if is_logged_in %}
+// Load existing plan
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/career-plan')
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && data.plan) {
+            const p = data.plan;
+            if (p.short_term) {
+                const st = p.short_term;
+                if (st.goal) document.getElementById('shortTermGoal').value = st.goal;
+                if (st.milestones) document.getElementById('shortTermMilestones').value = st.milestones;
+            }
+            if (p.long_term) {
+                const lt = p.long_term;
+                if (lt.position) document.getElementById('longTermPosition').value = lt.position;
+                if (lt.skills) document.getElementById('longTermSkills').value = lt.skills;
+                if (lt.companies) document.getElementById('longTermCompanies').value = lt.companies;
+            }
+            if (p.implementation) document.getElementById('implementation').value = p.implementation;
+            if (p.updated_at) {
+                document.getElementById('saveIndicator').style.display = 'flex';
+                document.getElementById('saveTime').textContent = new Date(p.updated_at).toLocaleString();
+            }
+        }
+    });
+});
+
+function savePlan() {
+    const data = {
+        short_term: {
+            goal: document.getElementById('shortTermGoal').value,
+            milestones: document.getElementById('shortTermMilestones').value
+        },
+        long_term: {
+            position: document.getElementById('longTermPosition').value,
+            skills: document.getElementById('longTermSkills').value,
+            companies: document.getElementById('longTermCompanies').value
+        },
+        implementation: document.getElementById('implementation').value
+    };
+
+    fetch('/api/career-plan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.success) {
+            document.getElementById('saveIndicator').style.display = 'flex';
+            document.getElementById('saveTime').textContent = 'just now';
+            showToast('Career plan saved successfully!', 'success');
+        }
+    });
+}
+
+// Auto-save every 60 seconds
+setInterval(savePlan, 60000);
+{% endif %}
+</script>
+{% endblock %}

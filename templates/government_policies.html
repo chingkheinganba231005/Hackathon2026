@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Government Career Policies - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Government Career Policies</h1>
+    <p>Official government programs and resources to support your career</p>
+</div>
+
+<div class="page-container">
+    <div class="breadcrumb">
+        <a href="/job-search">Job Search</a> &rsaquo; <span>Government Policies</span>
+    </div>
+
+    <div class="policies-intro">
+        <p>The Hong Kong Government offers various programs to support employment, training, and career development. Explore the resources below to find programs that match your needs.</p>
+    </div>
+
+    <div class="policies-grid">
+        {% for policy in policies %}
+        <a href="{{ policy.url }}" target="_blank" rel="noopener" class="policy-card" onclick="return confirmLink('{{ policy.title }}')">
+            <span class="policy-category">{{ policy.category }}</span>
+            <h3>{{ policy.title }}</h3>
+            <p>{{ policy.desc }}</p>
+            <span class="policy-link">Learn More &#x2197;</span>
+        </a>
+        {% endfor %}
+    </div>
+
+    <div class="policy-categories">
+        <h2>Resources by Category</h2>
+
+        <div class="category-section">
+            <h3>&#x1F393; For Students & Fresh Graduates</h3>
+            <ul class="policy-list">
+                <li><a href="https://www.yes.labour.gov.hk/" target="_blank" rel="noopener">Youth Employment and Training Programme (YETP)</a></li>
+                <li><a href="https://www.wfsfaa.gov.hk/cef/" target="_blank" rel="noopener">Continuing Education Fund (up to HK$25,000)</a></li>
+                <li><a href="https://www.erb.org/" target="_blank" rel="noopener">ERB Skills Upgrading Courses</a></li>
+            </ul>
+        </div>
+
+        <div class="category-section">
+            <h3>&#x1F4BC; For Job Seekers</h3>
+            <ul class="policy-list">
+                <li><a href="https://www1.jobs.gov.hk/" target="_blank" rel="noopener">Interactive Employment Service (iES)</a></li>
+                <li><a href="https://www.labour.gov.hk/" target="_blank" rel="noopener">Labour Department Job Matching</a></li>
+                <li><a href="https://www.csb.gov.hk/english/recruit/" target="_blank" rel="noopener">Civil Service Recruitment</a></li>
+            </ul>
+        </div>
+
+        <div class="category-section">
+            <h3>&#x1F680; For Entrepreneurs</h3>
+            <ul class="policy-list">
+                <li><a href="https://www.startmeup.hk/" target="_blank" rel="noopener">StartmeupHK - Startup Support</a></li>
+                <li><a href="https://www.cyberport.hk/en/incubation" target="_blank" rel="noopener">Cyberport Incubation Programme</a></li>
+                <li><a href="https://www.hkstp.org/" target="_blank" rel="noopener">HKSTP Science Park Programmes</a></li>
+            </ul>
+        </div>
+
+        <div class="category-section">
+            <h3>&#x1F310; For International Talent</h3>
+            <ul class="policy-list">
+                <li><a href="https://www.itc.gov.hk/en/techtas/" target="_blank" rel="noopener">Technology Talent Admission Scheme (TechTAS)</a></li>
+                <li><a href="https://www.immd.gov.hk/eng/services/hk-visas/quality-migrant-admission-scheme.html" target="_blank" rel="noopener">Quality Migrant Admission Scheme</a></li>
+                <li><a href="https://www.immd.gov.hk/eng/services/hk-visas/admission-scheme-mainland-talents-professionals.html" target="_blank" rel="noopener">Mainland Talents and Professionals Scheme</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmLink(title) {
+    return confirm(`Click to jump to "${title}" page. Continue?`);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Career Hub{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">&#x1F9ED;</span>
+                <span>Career Hub</span>
+            </a>
+            <button class="nav-toggle" onclick="toggleNav()">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
+                <li><a href="/career-exploration" class="{% if '/career-exploration' in request.path %}active{% endif %}">Career Exploring</a></li>
+                <li><a href="/career-center" class="{% if 'career-center' in request.path or 'assessment' in request.path or 'personalized-route' in request.path %}active{% endif %}">Career Center</a></li>
+                <li><a href="/experience-sharing" class="{% if 'experience' in request.path %}active{% endif %}">Experiences</a></li>
+                <li><a href="/dream-jobs" class="{% if 'dream' in request.path %}active{% endif %}">Dream Jobs</a></li>
+            </ul>
+            <!-- Global Search -->
+            <div class="global-search">
+                <input type="text" class="global-search-input" id="globalSearchInput" placeholder="Search..." onkeyup="handleGlobalSearch(event)">
+                <button class="global-search-btn" onclick="executeGlobalSearch()">&#x1F50D;</button>
+                <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+            </div>
+            <div class="nav-auth">
+                {% if is_logged_in %}
+                <div class="user-menu">
+                    <button class="user-btn" onclick="toggleUserMenu()">
+                        <span class="user-avatar">{{ user_name[0]|upper }}</span>
+                        <span class="user-name">{{ user_name }}</span>
+                        {% if is_verified %}<span class="verified-badge" title="Verified Student">&#x2713;</span>{% endif %}
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="/profile">Profile Settings</a>
+                        <a href="/messages">Messages</a>
+                        <a href="/my-favorites">My Favorites</a>
+                        {% if not is_verified %}<a href="/verification">Verify Student Status</a>{% endif %}
+                        <a href="/logout" class="logout-link">Logout</a>
+                    </div>
+                </div>
+                {% else %}
+                <a href="/login" class="btn btn-sm btn-ghost">Login</a>
+                <a href="/register" class="btn btn-sm btn-primary">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>Career Hub</h3>
+                    <p>Empowering Hong Kong university students with career guidance, resources, and community support.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="/career-exploration">Career Exploring</a></li>
+                        <li><a href="/career-center">Career Center</a></li>
+                        <li><a href="/personalized-route">Personalized Route</a></li>
+                        <li><a href="/job-search">Job Search</a></li>
+                        <li><a href="/dream-jobs">Dream Job Ranking</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="/industry-reports">Industry Reports</a></li>
+                        <li><a href="/government-policies">Government Policies</a></li>
+                        <li><a href="/experience-sharing">Experience Sharing</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>HK Universities</h4>
+                    <ul>
+                        <li>HKU, CUHK, HKUST, PolyU</li>
+                        <li>CityU, HKBU, LingnanU, EdUHK</li>
+                    </ul>
+                    <div class="animation-toggle-wrapper">
+                        <button class="animation-toggle" id="animationToggle" onclick="toggleAnimations()">
+                            <span class="toggle-icon" id="toggleIcon">&#x2728;</span>
+                            <span class="toggle-text" id="toggleText">Animations On</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Career Hub &copy; 2026. Built for Hong Kong university students.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+    function toggleNav() {
+        document.getElementById('navLinks').classList.toggle('show');
+    }
+
+    function toggleUserMenu() {
+        document.getElementById('userDropdown').classList.toggle('show');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.user-menu')) {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.remove('show');
+        }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast show ' + type;
+        setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+
+    // Login guard for interactive features
+    const isLoggedIn = {{ 'true' if is_logged_in else 'false' }};
+    function requireLogin(action) {
+        if (!isLoggedIn) {
+            showToast('Please register or login to ' + action, 'error');
+            setTimeout(() => { window.location.href = '/register'; }, 1500);
+            return false;
+        }
+        return true;
+    }
+
+    // Global Search Functionality
+    let searchTimeout;
+    function handleGlobalSearch(e) {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        
+        if (e.key === 'Enter') {
+            executeGlobalSearch();
+            return;
+        }
+        
+        if (query.length < 2) {
+            document.getElementById('searchResultsDropdown').style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => performQuickSearch(query), 300);
+    }
+    
+    function performQuickSearch(query) {
+        fetch('/api/global-search?q=' + encodeURIComponent(query))
+        .then(r => r.json())
+        .then(data => {
+            const dropdown = document.getElementById('searchResultsDropdown');
+            
+            if (!data.results || data.results.length === 0) {
+                dropdown.innerHTML = '<div class="no-results">No results found</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+            
+            let html = '';
+            data.results.forEach(item => {
+                html += `<a href="${item.url}" class="search-result-item">
+                    <span class="result-icon">${item.icon}</span>
+                    <div class="result-info">
+                        <span class="result-title">${item.title}</span>
+                        <span class="result-type">${item.type}</span>
+                    </div>
+                </a>`;
+            });
+            
+            html += `<a href="/experience-sharing?search=${encodeURIComponent(query)}" class="search-view-all">View all results &#x2192;</a>`;
+            dropdown.innerHTML = html;
+            dropdown.style.display = 'block';
+        });
+    }
+    
+    function executeGlobalSearch() {
+        const query = document.getElementById('globalSearchInput').value.trim();
+        if (query) {
+            window.location.href = '/experience-sharing?search=' + encodeURIComponent(query);
+        }
+    }
+    
+    // Close search dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.global-search')) {
+            document.getElementById('searchResultsDropdown').style.display = 'none';
+        }
+    });
+
+    // Animation Toggle Functionality
+    function toggleAnimations() {
+        const body = document.body;
+        const isReduced = body.classList.toggle('reduce-motion');
+        
+        // Update toggle button
+        const toggleIcon = document.getElementById('toggleIcon');
+        const toggleText = document.getElementById('toggleText');
+        const toggleBtn = document.getElementById('animationToggle');
+        
+        if (isReduced) {
+            toggleIcon.innerHTML = '&#x23F8;';
+            toggleText.textContent = 'Animations Off';
+            toggleBtn.classList.add('off');
+            localStorage.setItem('reduceMotion', 'true');
+            showToast('Animations disabled', 'info');
+        } else {
+            toggleIcon.innerHTML = '&#x2728;';
+            toggleText.textContent = 'Animations On';
+            toggleBtn.classList.remove('off');
+            localStorage.setItem('reduceMotion', 'false');
+            showToast('Animations enabled', 'success');
+        }
+    }
+
+    // Initialize animation preference from localStorage
+    function initAnimationPreference() {
+        const reduceMotion = localStorage.getItem('reduceMotion');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const toggleText = document.getElementById('toggleText');
+        const toggleBtn = document.getElementById('animationToggle');
+        
+        if (reduceMotion === 'true') {
+            document.body.classList.add('reduce-motion');
+            if (toggleIcon) toggleIcon.innerHTML = '&#x23F8;';
+            if (toggleText) toggleText.textContent = 'Animations Off';
+            if (toggleBtn) toggleBtn.classList.add('off');
+        }
+        
+        // Also respect prefers-reduced-motion media query
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches && reduceMotion === null) {
+            document.body.classList.add('reduce-motion');
+            if (toggleIcon) toggleIcon.innerHTML = '&#x23F8;';
+            if (toggleText) toggleText.textContent = 'Animations Off';
+            if (toggleBtn) toggleBtn.classList.add('off');
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', initAnimationPreference);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

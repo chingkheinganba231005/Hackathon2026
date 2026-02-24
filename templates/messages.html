@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Messages - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Private Messages</h1>
+    <p>Chat with other students and alumni</p>
+</div>
+
+<div class="page-container">
+    <div class="messages-container">
+        <!-- Conversations List -->
+        <div class="conversations-panel">
+            <div class="panel-header">
+                <h3>Conversations</h3>
+                <span class="unread-badge" id="totalUnread" style="display:none;">0</span>
+            </div>
+            <div id="conversationsList" class="conversations-list">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="chat-panel" id="chatPanel">
+            <div class="chat-placeholder" id="chatPlaceholder">
+                <div class="placeholder-icon">&#x1F4AC;</div>
+                <p>Select a conversation to start chatting</p>
+                <p class="hint">Or start a new conversation from a user's profile</p>
+            </div>
+
+            <div class="chat-content" id="chatContent" style="display:none;">
+                <div class="chat-header">
+                    <div class="chat-user-info">
+                        <span class="chat-avatar" id="chatAvatar">U</span>
+                        <div>
+                            <span class="chat-username" id="chatUsername">User</span>
+                            <span class="verified-badge-gold" id="chatVerified" style="display:none;">&#x2714;</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="messages-list" id="messagesList">
+                    <!-- Messages will be loaded here -->
+                </div>
+
+                <div class="chat-input-area">
+                    <input type="text" 
+                           class="chat-input" 
+                           id="messageInput" 
+                           placeholder="Type a message..." 
+                           maxlength="1000"
+                           onkeypress="if(event.key==='Enter')sendMessage()">
+                    <button class="btn btn-primary send-btn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentConversation = null;
+let currentOtherUserId = null;
+let pollInterval = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadConversations();
+    
+    // Check if we should open a specific conversation from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUserId = urlParams.get('user');
+    const targetUserName = urlParams.get('name');
+    
+    if (targetUserId && targetUserName) {
+        // Open conversation with this user
+        setTimeout(() => {
+            openConversation(targetUserId, targetUserName, false);
+        }, 500);
+    }
+    
+    // Poll for new messages every 5 seconds
+    pollInterval = setInterval(loadConversations, 5000);
+});
+
+function loadConversations() {
+    fetch('/api/messages/conversations')
+    .then(r => r.json())
+    .then(data => {
+        const list = document.getElementById('conversationsList');
+        
+        if (!data.success || data.conversations.length === 0) {
+            list.innerHTML = `
+                <div class="empty-conversations">
+                    <p>No conversations yet</p>
+                    <p class="hint">Start a conversation from a user's post</p>
+                </div>`;
+            return;
+        }
+
+        // Calculate total unread
+        const totalUnread = data.conversations.reduce((sum, c) => sum + c.unread_count, 0);
+        const badge = document.getElementById('totalUnread');
+        if (totalUnread > 0) {
+            badge.textContent = totalUnread;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+
+        list.innerHTML = data.conversations.map(conv => {
+            const initial = conv.other_user_name.charAt(0).toUpperCase();
+            const verifiedBadge = conv.other_user_verified ? '<span class="verified-badge-gold small">&#x2714;</span>' : '';
+            const unreadBadge = conv.unread_count > 0 ? `<span class="conv-unread">${conv.unread_count}</span>` : '';
+            const activeClass = currentOtherUserId === conv.other_user_id ? 'active' : '';
+            
+            return `
+            <div class="conversation-item ${activeClass}" onclick="openConversation('${conv.other_user_id}', '${escapeHtml(conv.other_user_name)}', ${conv.other_user_verified})">
+                <div class="conv-avatar">${initial}</div>
+                <div class="conv-info">
+                    <div class="conv-name">${escapeHtml(conv.other_user_name)} ${verifiedBadge}</div>
+                    <div class="conv-preview">${escapeHtml(conv.last_message)}</div>
+                </div>
+                <div class="conv-meta">
+                    <span class="conv-time">${formatTime(conv.last_message_time)}</span>
+                    ${unreadBadge}
+                </div>
+            </div>`;
+        }).join('');
+    });
+}
+
+function openConversation(otherUserId, otherUserName, isVerified) {
+    currentOtherUserId = otherUserId;
+    
+    // Update UI
+    document.getElementById('chatPlaceholder').style.display = 'none';
+    document.getElementById('chatContent').style.display = 'flex';
+    
+    document.getElementById('chatAvatar').textContent = otherUserName.charAt(0).toUpperCase();
+    document.getElementById('chatUsername').textContent = otherUserName;
+    document.getElementById('chatVerified').style.display = isVerified ? 'inline-flex' : 'none';
+    
+    // Mark as active
+    document.querySelectorAll('.conversation-item').forEach(item => item.classList.remove('active'));
+    event.currentTarget?.classList.add('active');
+    
+    loadMessages(otherUserId);
+}
+
+function loadMessages(otherUserId) {
+    const list = document.getElementById('messagesList');
+    
+    fetch(`/api/messages/${otherUserId}`)
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            list.innerHTML = '<p class="error">Failed to load messages</p>';
+            return;
+        }
+
+        if (data.messages.length === 0) {
+            list.innerHTML = '<div class="no-messages">No messages yet. Start the conversation!</div>';
+            return;
+        }
+
+        const currentUserId = '{{ current_user_id or "" }}';
+        
+        list.innerHTML = data.messages.map(msg => {
+            const isSent = msg.sender_id === currentUserId;
+            return `
+            <div class="message ${isSent ? 'sent' : 'received'}">
+                <div class="message-content">${escapeHtml(msg.content)}</div>
+                <div class="message-time">${formatTime(msg.created_at)}</div>
+            </div>`;
+        }).join('');
+        
+        // Scroll to bottom
+        list.scrollTop = list.scrollHeight;
+        
+        // Refresh conversations to update unread count
+        loadConversations();
+    });
+}
+
+function sendMessage() {
+    if (!currentOtherUserId) return;
+    
+    const input = document.getElementById('messageInput');
+    const content = input.value.trim();
+    
+    if (!content) return;
+    
+    fetch(`/api/messages/${currentOtherUserId}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadMessages(currentOtherUserId);
+        } else {
+            showToast(data.message || 'Failed to send message', 'error');
+        }
+    });
+}
+
+function formatTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr.replace(' ', 'T'));
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+        return dateStr.split(' ')[1] || 'Today';
+    } else if (diffDays === 1) {
+        return 'Yesterday';
+    } else if (diffDays < 7) {
+        return `${diffDays}d ago`;
+    } else {
+        return dateStr.split(' ')[0];
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

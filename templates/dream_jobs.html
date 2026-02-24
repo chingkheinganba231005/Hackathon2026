@@ -1,0 +1,816 @@
+{% extends "base.html" %}
+
+{% block title %}Dream Jobs - Top Company Offer Show | Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header dream-header">
+    <div class="header-content">
+        <h1>&#x2B50; Dream Jobs</h1>
+        <p>Top Company Offer Show - Vote, Share, and Get Inspired!</p>
+    </div>
+    {% if is_logged_in %}
+    <div class="user-achievements-mini" onclick="showAchievementsModal()">
+        <span class="points-badge" id="userPoints">0 pts</span>
+        <span class="badge-count" id="userBadges">0 badges</span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Stats Section -->
+<div class="dream-stats-section">
+    <div class="dream-stat-card">
+        <span class="stat-icon">&#x1F3E2;</span>
+        <div class="stat-info">
+            <span class="stat-value" id="statCompanies">10</span>
+            <span class="stat-label">Top Companies</span>
+        </div>
+    </div>
+    <div class="dream-stat-card">
+        <span class="stat-icon">&#x2764;</span>
+        <div class="stat-info">
+            <span class="stat-value" id="statVotes">0</span>
+            <span class="stat-label">Total Votes</span>
+        </div>
+    </div>
+    <div class="dream-stat-card">
+        <span class="stat-icon">&#x1F381;</span>
+        <div class="stat-info">
+            <span class="stat-value" id="statOffers">0</span>
+            <span class="stat-label">Offers Shared</span>
+        </div>
+    </div>
+    <div class="dream-stat-card trending">
+        <span class="stat-icon">&#x1F525;</span>
+        <div class="stat-info">
+            <span class="stat-value" id="statTrending">0</span>
+            <span class="stat-label">Trending Now</span>
+        </div>
+    </div>
+</div>
+
+<div class="page-container">
+    <!-- Main Tabs -->
+    <div class="dream-tabs">
+        <button class="dream-tab active" onclick="showTab('companies', this)">&#x1F3E2; Top Companies</button>
+        <button class="dream-tab" onclick="showTab('offers', this)">&#x1F381; Offer Show</button>
+        <button class="dream-tab" onclick="showTab('posts', this)">&#x1F4DD; Dream Stories</button>
+        <button class="dream-tab" onclick="showTab('leaderboard', this)">&#x1F3C6; Leaderboard</button>
+    </div>
+
+    <!-- Top Companies Tab -->
+    <div id="companiesTab" class="tab-content">
+        <div class="tab-header">
+            <p class="tab-desc">Vote for your dream companies. Rankings update in real-time!</p>
+            <div class="filter-chips">
+                <button class="filter-chip active" onclick="filterCompanies('all', this)">All</button>
+                <button class="filter-chip" onclick="filterCompanies('Technology', this)">Tech</button>
+                <button class="filter-chip" onclick="filterCompanies('Finance', this)">Finance</button>
+                <button class="filter-chip" onclick="filterCompanies('Consulting', this)">Consulting</button>
+            </div>
+        </div>
+        <div id="companyRanking" class="company-ranking-enhanced">
+            <div class="spinner"></div>
+        </div>
+        
+        <!-- Company Discussion Section -->
+        <div class="company-discussion-section">
+            <h3>&#x1F4AC; Company Discussions</h3>
+            <p class="section-desc">Share insights and discuss experiences at different companies</p>
+            <div class="company-discussion-tabs">
+                <button class="company-disc-tab active" onclick="showCompanyDiscussion('google', this)">Google</button>
+                <button class="company-disc-tab" onclick="showCompanyDiscussion('goldman', this)">Goldman Sachs</button>
+                <button class="company-disc-tab" onclick="showCompanyDiscussion('mckinsey', this)">McKinsey</button>
+                <button class="company-disc-tab" onclick="showCompanyDiscussion('meta', this)">Meta</button>
+                <button class="company-disc-tab" onclick="showCompanyDiscussion('hsbc', this)">HSBC</button>
+            </div>
+            <div id="companyDiscussionContent" class="company-discussion-content">
+                <div class="discussion-thread" id="discussionThread">
+                    <!-- Discussion content loaded dynamically -->
+                </div>
+                {% if is_logged_in %}
+                <div class="discussion-input-area">
+                    <input type="text" id="companyDiscussionInput" placeholder="Share your thoughts about this company..." maxlength="500">
+                    <button class="btn btn-primary btn-sm" onclick="addCompanyComment()">Post</button>
+                </div>
+                {% else %}
+                <p class="login-prompt"><a href="/login">Login</a> to join the discussion</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Offer Show Tab -->
+    <div id="offersTab" class="tab-content" style="display:none;">
+        <div class="tab-header">
+            <p class="tab-desc">Real offers from real students. Share yours and inspire others!</p>
+            {% if is_logged_in %}
+            <button class="btn btn-primary btn-sm" onclick="showShareOfferModal()">&#x1F381; Share Your Offer</button>
+            {% else %}
+            <a href="/register" class="btn btn-primary btn-sm">Sign Up to Share</a>
+            {% endif %}
+        </div>
+        <div class="offer-filters">
+            <select id="offerIndustry" onchange="loadOffers()">
+                <option value="">All Industries</option>
+                <option value="Technology">Technology</option>
+                <option value="Finance">Finance</option>
+                <option value="Consulting">Consulting</option>
+                <option value="Professional Services">Professional Services</option>
+            </select>
+            <select id="offerSort" onchange="loadOffers()">
+                <option value="recent">Most Recent</option>
+                <option value="likes">Most Liked</option>
+            </select>
+        </div>
+        <div id="offerShowcase" class="offer-showcase">
+            <div class="spinner"></div>
+        </div>
+        
+        <!-- Chatbot Section -->
+        <div class="chatbot-section">
+            <div class="chatbot-header">
+                <span class="chatbot-icon">&#x1F4AC;</span>
+                <h3>Community Discussion</h3>
+                <p>Chat with others about career offers and experiences</p>
+            </div>
+            <div class="chatbot-messages" id="offerChatMessages">
+                <div class="chat-welcome-msg">
+                    <p>Welcome! Ask questions, share tips, or discuss offers with the community.</p>
+                </div>
+            </div>
+            <div class="chatbot-input-area">
+                {% if is_logged_in %}
+                <input type="text" id="offerChatInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter')sendOfferChatMessage()">
+                <button class="btn btn-primary" onclick="sendOfferChatMessage()">Send</button>
+                {% else %}
+                <p class="login-prompt"><a href="/login">Login</a> or <a href="/register">Sign up</a> to join the discussion</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Dream Stories Tab -->
+    <div id="postsTab" class="tab-content" style="display:none;">
+        <div class="tab-header">
+            <p class="tab-desc">Share your dream job journey and vote for inspiring stories</p>
+            {% if is_logged_in %}
+            <a href="/experience-sharing" class="btn btn-primary btn-sm">Share Your Story</a>
+            {% endif %}
+        </div>
+        <div id="dreamPosts" class="dream-posts">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Tab -->
+    <div id="leaderboardTab" class="tab-content" style="display:none;">
+        <div class="tab-header">
+            <p class="tab-desc">Top contributors earn badges and recognition!</p>
+        </div>
+        <div class="badges-showcase">
+            <h3>&#x1F3C5; Achievement Badges</h3>
+            <div class="badges-grid">
+                <div class="badge-item"><span class="badge-icon">&#x2B50;</span><span class="badge-name">First Vote</span><span class="badge-desc">Cast your first vote</span></div>
+                <div class="badge-item"><span class="badge-icon">&#x1F525;</span><span class="badge-name">Active Voter</span><span class="badge-desc">Cast 10 votes</span></div>
+                <div class="badge-item"><span class="badge-icon">&#x1F3C6;</span><span class="badge-name">Super Voter</span><span class="badge-desc">Cast 50 votes</span></div>
+                <div class="badge-item"><span class="badge-icon">&#x1F381;</span><span class="badge-name">Offer Sharer</span><span class="badge-desc">Share your first offer</span></div>
+                <div class="badge-item"><span class="badge-icon">&#x2705;</span><span class="badge-name">Verified Winner</span><span class="badge-desc">Share a verified offer</span></div>
+                <div class="badge-item special"><span class="badge-icon">&#x1F451;</span><span class="badge-name">Top Contributor</span><span class="badge-desc">Reach 500 points</span></div>
+            </div>
+        </div>
+        <div id="leaderboardList" class="leaderboard-list">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Offer Modal -->
+<div id="shareOfferModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>&#x1F381; Share Your Offer</h3>
+            <button class="modal-close" onclick="closeModal('shareOfferModal')">&times;</button>
+        </div>
+        <form id="shareOfferForm" onsubmit="submitOffer(event)">
+            <div class="form-group">
+                <label>Company Name *</label>
+                <input type="text" id="offerCompany" placeholder="e.g., Google, Goldman Sachs" required>
+            </div>
+            <div class="form-group">
+                <label>Position *</label>
+                <input type="text" id="offerPosition" placeholder="e.g., Software Engineer, Analyst" required>
+            </div>
+            <div class="form-group">
+                <label>Salary (Optional)</label>
+                <input type="text" id="offerSalary" placeholder="e.g., HK$45,000/month">
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="offerLocation" placeholder="e.g., Hong Kong, Singapore" value="Hong Kong">
+            </div>
+            <div class="form-group">
+                <label>Offer Date</label>
+                <input type="date" id="offerDate">
+            </div>
+            <div class="form-group checkbox-group">
+                <label><input type="checkbox" id="offerAnonymous"> Post anonymously</label>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('shareOfferModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Share Offer (+50 pts)</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Post Detail Modal -->
+<div id="postDetailModal" class="modal" style="display:none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3 id="postDetailTitle">Dream Story</h3>
+            <button class="modal-close" onclick="closeModal('postDetailModal')">&times;</button>
+        </div>
+        <div id="postDetailContent"></div>
+    </div>
+</div>
+
+<!-- Achievements Modal -->
+<div id="achievementsModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>&#x1F3C6; Your Achievements</h3>
+            <button class="modal-close" onclick="closeModal('achievementsModal')">&times;</button>
+        </div>
+        <div id="achievementsContent">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentIndustryFilter = 'all';
+let dreamPostsData = [];
+let currentCompanyDiscussion = 'google';
+
+// Company discussion data
+const companyDiscussions = {
+    google: [
+        {id: 1, author: 'CS Graduate', content: 'The interview process is tough but fair. Expect 4-5 rounds including coding and system design.', time: '3 days ago', likes: 24},
+        {id: 2, author: 'PM Intern', content: 'Work culture is amazing! Free food, great benefits, and supportive team members.', time: '2 days ago', likes: 18},
+        {id: 3, author: 'SWE 2024', content: 'Got my offer after 2 months of preparation. LeetCode premium really helped!', time: '1 day ago', likes: 31},
+    ],
+    goldman: [
+        {id: 1, author: 'Finance Major', content: 'Super competitive, but the training program is world-class. Work-life balance can be challenging though.', time: '5 days ago', likes: 15},
+        {id: 2, author: 'IBD Analyst', content: 'Long hours but great learning curve. Exit opportunities are excellent.', time: '3 days ago', likes: 22},
+    ],
+    mckinsey: [
+        {id: 1, author: 'Consultant', content: 'Case interviews are everything. Practice at least 30-50 cases before interviewing.', time: '4 days ago', likes: 28},
+        {id: 2, author: 'BA 2023', content: 'Great for building problem-solving skills. Travel can be intense.', time: '2 days ago', likes: 19},
+    ],
+    meta: [
+        {id: 1, author: 'Product Manager', content: 'Fast-paced environment. They really value data-driven decision making.', time: '3 days ago', likes: 16},
+        {id: 2, author: 'SWE Intern', content: 'Amazing intern program! Got converted to full-time after my internship.', time: '1 day ago', likes: 25},
+    ],
+    hsbc: [
+        {id: 1, author: 'Graduate Trainee', content: 'Good work-life balance compared to other banks. Strong presence in Asia.', time: '4 days ago', likes: 12},
+        {id: 2, author: 'Risk Analyst', content: 'Stable career path with good benefits. Digital transformation is ongoing.', time: '2 days ago', likes: 14},
+    ],
+};
+
+function showCompanyDiscussion(companyId, btn) {
+    document.querySelectorAll('.company-disc-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    currentCompanyDiscussion = companyId;
+    loadCompanyDiscussion(companyId);
+}
+
+function loadCompanyDiscussion(companyId) {
+    const thread = document.getElementById('discussionThread');
+    const discussions = companyDiscussions[companyId] || [];
+    
+    if (discussions.length === 0) {
+        thread.innerHTML = '<div class="empty-discussion"><p>No discussions yet. Be the first to share!</p></div>';
+        return;
+    }
+    
+    let html = '';
+    discussions.forEach(disc => {
+        const initial = disc.author.charAt(0);
+        html += `
+        <div class="discussion-item">
+            <div class="disc-avatar">${initial}</div>
+            <div class="disc-content">
+                <div class="disc-header">
+                    <span class="disc-author">${escapeHtml(disc.author)}</span>
+                    <span class="disc-time">${disc.time}</span>
+                </div>
+                <p class="disc-text">${escapeHtml(disc.content)}</p>
+                <div class="disc-actions">
+                    <button class="disc-like-btn" onclick="likeDiscussion('${companyId}', ${disc.id}, this)">&#x1F44D; ${disc.likes}</button>
+                    <button class="disc-reply-btn">Reply</button>
+                </div>
+            </div>
+        </div>`;
+    });
+    thread.innerHTML = html;
+}
+
+function addCompanyComment() {
+    const input = document.getElementById('companyDiscussionInput');
+    const content = input.value.trim();
+    if (!content) return;
+    
+    // Add to discussions
+    if (!companyDiscussions[currentCompanyDiscussion]) {
+        companyDiscussions[currentCompanyDiscussion] = [];
+    }
+    companyDiscussions[currentCompanyDiscussion].unshift({
+        id: Date.now(),
+        author: 'You',
+        content: content,
+        time: 'Just now',
+        likes: 0
+    });
+    
+    input.value = '';
+    loadCompanyDiscussion(currentCompanyDiscussion);
+    showToast('Comment posted!', 'success');
+}
+
+function likeDiscussion(companyId, discId, btn) {
+    const disc = companyDiscussions[companyId].find(d => d.id === discId);
+    if (disc) {
+        disc.likes++;
+        btn.innerHTML = `&#x1F44D; ${disc.likes}`;
+        btn.classList.add('liked');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadStats();
+    loadCompanyRanking();
+    loadOffers();
+    loadDreamPosts();
+    loadLeaderboard();
+    loadCompanyDiscussion('google');
+    {% if is_logged_in %}
+    loadUserAchievements();
+    {% endif %}
+});
+
+function showTab(tab, btn) {
+    document.querySelectorAll('.dream-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('companiesTab').style.display = tab === 'companies' ? 'block' : 'none';
+    document.getElementById('offersTab').style.display = tab === 'offers' ? 'block' : 'none';
+    document.getElementById('postsTab').style.display = tab === 'posts' ? 'block' : 'none';
+    document.getElementById('leaderboardTab').style.display = tab === 'leaderboard' ? 'block' : 'none';
+}
+
+function loadStats() {
+    fetch('/api/dream-jobs/stats')
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('statCompanies').textContent = data.stats.total_companies;
+            document.getElementById('statVotes').textContent = data.stats.total_votes.toLocaleString();
+            document.getElementById('statOffers').textContent = data.stats.total_offers;
+            document.getElementById('statTrending').textContent = data.stats.trending_count;
+        }
+    });
+}
+
+function loadCompanyRanking() {
+    fetch('/api/dream-jobs/companies')
+    .then(r => r.json())
+    .then(data => {
+        const container = document.getElementById('companyRanking');
+        if (!data.success || data.companies.length === 0) {
+            container.innerHTML = '<div class="empty-state"><p>No companies to show.</p></div>';
+            return;
+        }
+        let companies = data.companies;
+        if (currentIndustryFilter !== 'all') {
+            companies = companies.filter(c => c.industry === currentIndustryFilter);
+        }
+        let html = '';
+        companies.forEach((company, index) => {
+            const rank = index + 1;
+            const rankClass = rank <= 3 ? `rank-${rank}` : '';
+            const trendingBadge = company.trending ? '<span class="trending-badge">&#x1F525; Trending</span>' : '';
+            const hiringBadge = company.hiring_status === 'active' ? '<span class="hiring-badge">Hiring</span>' : '';
+            html += `
+            <div class="company-card-enhanced ${rankClass}">
+                <div class="company-rank-badge">${rank}</div>
+                <div class="company-logo-large">${company.logo}</div>
+                <div class="company-details">
+                    <div class="company-header">
+                        <h4>${escapeHtml(company.name)}</h4>
+                        <div class="company-badges">${trendingBadge}${hiringBadge}</div>
+                    </div>
+                    <span class="company-industry-tag">${escapeHtml(company.industry)}</span>
+                    <p class="company-desc">${escapeHtml(company.description)}</p>
+                    <div class="company-meta">
+                        <span class="meta-item">&#x1F4B0; ${company.salary_range || 'Competitive'}</span>
+                        <span class="meta-item">&#x1F381; ${company.offer_count || 0} offers shared</span>
+                    </div>
+                </div>
+                <div class="company-vote-section">
+                    <button class="vote-btn-large ${company.user_voted ? 'voted' : ''}" onclick="voteCompany('${company.id}', this)" ${company.user_voted ? 'disabled' : ''}>
+                        <span class="vote-heart">${company.user_voted ? '&#x2764;' : '&#x1F5A4;'}</span>
+                        <span class="vote-count">${company.votes}</span>
+                    </button>
+                    <span class="vote-hint">${company.user_voted ? 'Voted!' : '+5 pts'}</span>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    });
+}
+
+function filterCompanies(industry, btn) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    currentIndustryFilter = industry;
+    loadCompanyRanking();
+}
+
+function loadOffers() {
+    const industry = document.getElementById('offerIndustry').value;
+    const sort = document.getElementById('offerSort').value;
+    fetch(`/api/dream-jobs/offers?industry=${industry}&sort=${sort}`)
+    .then(r => r.json())
+    .then(data => {
+        const container = document.getElementById('offerShowcase');
+        if (!data.success || data.offers.length === 0) {
+            container.innerHTML = '<div class="empty-state"><p>No offers yet. Be the first to share!</p></div>';
+            return;
+        }
+        let html = '';
+        data.offers.forEach(offer => {
+            const verifiedBadge = offer.verified ? '<span class="verified-badge-small">&#x2705; Verified</span>' : '';
+            const initial = offer.author_name.charAt(0).toUpperCase();
+            const connectBtn = offer.verified && !offer.anonymous ? 
+                `<button class="connect-btn" onclick="connectToAlumni('${offer.user_id}', '${escapeHtml(offer.author_name)}')">&#x1F91D; Connect</button>` : '';
+            html += `
+            <div class="offer-card">
+                <div class="offer-header">
+                    <div class="offer-avatar">${initial}</div>
+                    <div class="offer-author-info">
+                        <span class="offer-author">${escapeHtml(offer.author_name)} ${verifiedBadge}</span>
+                        <span class="offer-university">${escapeHtml(offer.university)}</span>
+                    </div>
+                    <span class="offer-date">${offer.created_at}</span>
+                </div>
+                <div class="offer-body">
+                    <div class="offer-company"><span class="company-name">${escapeHtml(offer.company)}</span></div>
+                    <div class="offer-position">${escapeHtml(offer.position)}</div>
+                    <div class="offer-details">
+                        <span class="detail-item">&#x1F4B0; ${escapeHtml(offer.salary)}</span>
+                        <span class="detail-item">&#x1F4CD; ${escapeHtml(offer.location)}</span>
+                    </div>
+                </div>
+                <div class="offer-footer">
+                    <button class="like-btn" onclick="likeOffer('${offer.id}', this)">&#x1F44D; <span class="like-count">${offer.likes}</span></button>
+                    ${connectBtn}
+                    <span class="offer-congrats">&#x1F389; Congrats!</span>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    });
+}
+
+function connectToAlumni(userId, name) {
+    if (!requireLogin('connect with alumni')) return;
+    window.location.href = `/messages?user=${userId}&name=${encodeURIComponent(name)}`;
+}
+
+function loadDreamPosts() {
+    fetch('/api/dream-jobs/posts')
+    .then(r => r.json())
+    .then(data => {
+        const container = document.getElementById('dreamPosts');
+        if (!data.success || data.posts.length === 0) {
+            container.innerHTML = '<div class="empty-state"><p>No dream job posts yet. Be the first to share!</p></div>';
+            return;
+        }
+        dreamPostsData = data.posts;
+        let html = '';
+        data.posts.forEach((post, index) => {
+            const rank = index + 1;
+            const rankClass = rank <= 3 ? `rank-${rank}` : '';
+            const initial = post.author.charAt(0).toUpperCase();
+            const truncatedContent = post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content;
+            const hasMore = post.content.length > 150;
+            html += `
+            <div class="dream-post-card ${rankClass}" onclick="viewPostDetail(${index})">
+                <div class="rank-badge">#${rank}</div>
+                <div class="post-content">
+                    <div class="post-meta">
+                        <div class="post-avatar">${initial}</div>
+                        <div>
+                            <div class="post-author">${escapeHtml(post.author)}</div>
+                            <div class="post-info">${post.university} &middot; ${post.created_at}</div>
+                        </div>
+                    </div>
+                    <h3>${escapeHtml(post.title)}</h3>
+                    <p class="post-text">${escapeHtml(truncatedContent)}</p>
+                    ${hasMore ? '<span class="read-more">Click to read more...</span>' : ''}
+                </div>
+                <div class="vote-section" onclick="event.stopPropagation()">
+                    <button class="vote-btn ${post.user_voted ? 'voted' : ''}" onclick="votePost('${post.id}', this)" ${post.user_voted ? 'disabled' : ''}>
+                        <span class="vote-icon">&#x2B50;</span>
+                        <span class="vote-count">${post.votes}</span>
+                    </button>
+                    <span class="vote-label">${post.user_voted ? 'Voted' : 'Vote'}</span>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    });
+}
+
+function viewPostDetail(index) {
+    const post = dreamPostsData[index];
+    if (!post) return;
+    const initial = post.author.charAt(0).toUpperCase();
+    document.getElementById('postDetailTitle').textContent = post.title;
+    document.getElementById('postDetailContent').innerHTML = `
+        <div class="post-detail">
+            <div class="post-detail-meta">
+                <div class="post-avatar large">${initial}</div>
+                <div>
+                    <div class="post-author">${escapeHtml(post.author)}</div>
+                    <div class="post-info">${post.university} &middot; ${post.created_at}</div>
+                </div>
+            </div>
+            <div class="post-detail-body">
+                <p>${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
+            </div>
+            <div class="post-detail-footer">
+                <span class="vote-count-lg">&#x2B50; ${post.votes} votes</span>
+            </div>
+        </div>`;
+    document.getElementById('postDetailModal').style.display = 'flex';
+}
+
+function loadLeaderboard() {
+    fetch('/api/dream-jobs/leaderboard')
+    .then(r => r.json())
+    .then(data => {
+        const container = document.getElementById('leaderboardList');
+        if (!data.success || data.leaderboard.length === 0) {
+            container.innerHTML = '<div class="empty-state"><p>No contributors yet. Be the first!</p></div>';
+            return;
+        }
+        let html = '<div class="leaderboard-header"><span>Rank</span><span>User</span><span>Points</span><span>Badges</span></div>';
+        data.leaderboard.forEach((user, index) => {
+            const rank = index + 1;
+            const rankIcon = rank === 1 ? '&#x1F947;' : rank === 2 ? '&#x1F948;' : rank === 3 ? '&#x1F949;' : rank;
+            const initial = user.name.charAt(0).toUpperCase();
+            html += `
+            <div class="leaderboard-row ${rank <= 3 ? 'top-' + rank : ''}">
+                <span class="lb-rank">${rankIcon}</span>
+                <span class="lb-user"><span class="lb-avatar">${initial}</span>${escapeHtml(user.name)}</span>
+                <span class="lb-points">${user.points.toLocaleString()} pts</span>
+                <span class="lb-badges">${user.badges} &#x1F3C5;</span>
+            </div>`;
+        });
+        container.innerHTML = html;
+    });
+}
+
+function loadUserAchievements() {
+    fetch('/api/dream-jobs/achievements')
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('userPoints').textContent = data.achievements.points + ' pts';
+            document.getElementById('userBadges').textContent = data.achievements.badges.length + ' badges';
+        }
+    });
+}
+
+function voteCompany(companyId, btn) {
+    if (!requireLogin('vote for companies')) return;
+    fetch(`/api/dream-jobs/companies/${companyId}/vote`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            btn.classList.add('voted');
+            btn.disabled = true;
+            btn.querySelector('.vote-count').textContent = data.votes;
+            btn.querySelector('.vote-heart').innerHTML = '&#x2764;';
+            btn.nextElementSibling.textContent = 'Voted!';
+            showToast('Vote recorded! +5 points', 'success');
+            loadUserAchievements();
+            loadStats();
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function votePost(postId, btn) {
+    if (!requireLogin('vote for dream jobs')) return;
+    fetch(`/api/posts/${postId}/vote`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            btn.classList.add('voted');
+            btn.disabled = true;
+            btn.querySelector('.vote-count').textContent = data.votes;
+            btn.nextElementSibling.textContent = 'Voted';
+            showToast('Vote recorded!', 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function likeOffer(offerId, btn) {
+    if (!requireLogin('like offers')) return;
+    fetch(`/api/dream-jobs/offers/${offerId}/like`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            btn.querySelector('.like-count').textContent = data.likes;
+            btn.classList.add('liked');
+            showToast('Liked!', 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function showShareOfferModal() {
+    document.getElementById('shareOfferModal').style.display = 'flex';
+}
+
+function showAchievementsModal() {
+    document.getElementById('achievementsModal').style.display = 'flex';
+    loadAchievementsDetail();
+}
+
+function loadAchievementsDetail() {
+    fetch('/api/dream-jobs/achievements')
+    .then(r => r.json())
+    .then(data => {
+        const container = document.getElementById('achievementsContent');
+        if (!data.success) {
+            container.innerHTML = '<p>Failed to load achievements</p>';
+            return;
+        }
+        const a = data.achievements;
+        let badgesHtml = '';
+        for (const [id, badge] of Object.entries(data.all_badges)) {
+            const earned = a.badges.includes(id);
+            badgesHtml += `
+            <div class="achievement-badge ${earned ? 'earned' : 'locked'}">
+                <span class="badge-icon">${getBadgeIcon(id)}</span>
+                <span class="badge-name">${badge.name}</span>
+                <span class="badge-points">+${badge.points} pts</span>
+            </div>`;
+        }
+        container.innerHTML = `
+        <div class="achievements-summary">
+            <div class="summary-item"><span class="summary-value">${a.points}</span><span class="summary-label">Total Points</span></div>
+            <div class="summary-item"><span class="summary-value">${a.badges.length}</span><span class="summary-label">Badges Earned</span></div>
+            <div class="summary-item"><span class="summary-value">${a.votes_cast}</span><span class="summary-label">Votes Cast</span></div>
+            <div class="summary-item"><span class="summary-value">${a.offers_shared}</span><span class="summary-label">Offers Shared</span></div>
+        </div>
+        <h4>Your Badges</h4>
+        <div class="achievements-badges">${badgesHtml}</div>`;
+    });
+}
+
+function getBadgeIcon(id) {
+    const icons = {'first_vote': '&#x2B50;', 'voter_10': '&#x1F525;', 'voter_50': '&#x1F3C6;', 'offer_shared': '&#x1F381;', 'verified_offer': '&#x2705;', 'top_contributor': '&#x1F451;'};
+    return icons[id] || '&#x1F3C5;';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function submitOffer(e) {
+    e.preventDefault();
+    const data = {
+        company: document.getElementById('offerCompany').value,
+        position: document.getElementById('offerPosition').value,
+        salary: document.getElementById('offerSalary').value,
+        location: document.getElementById('offerLocation').value,
+        offer_date: document.getElementById('offerDate').value,
+        anonymous: document.getElementById('offerAnonymous').checked
+    };
+    fetch('/api/dream-jobs/offers', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.success) {
+            showToast('Offer shared successfully! +50 points', 'success');
+            closeModal('shareOfferModal');
+            document.getElementById('shareOfferForm').reset();
+            loadOffers();
+            loadStats();
+            loadUserAchievements();
+        } else {
+            showToast(result.message, 'error');
+        }
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Offer Chatbot functionality
+let offerChatMessages = [
+    {sender: 'system', content: 'Welcome! This is a community space to discuss job offers and career experiences.', time: ''},
+    {sender: 'user1', name: 'Alex', content: 'Just got my offer from Google! So excited!', time: '2 hours ago'},
+    {sender: 'user2', name: 'Sarah', content: 'Congrats Alex! Any tips for the interview process?', time: '1 hour ago'},
+    {sender: 'user1', name: 'Alex', content: 'Thanks! Focus on system design and behavioral questions. LeetCode helps a lot!', time: '45 min ago'},
+    {sender: 'user3', name: 'Mike', content: 'Anyone know about Goldman Sachs HK salary range for analysts?', time: '30 min ago'},
+    {sender: 'user4', name: 'Jenny', content: 'Usually around 45-50K HKD/month for fresh grads with bonus', time: '15 min ago'},
+];
+
+function loadOfferChat() {
+    const container = document.getElementById('offerChatMessages');
+    let html = '';
+    offerChatMessages.forEach(msg => {
+        if (msg.sender === 'system') {
+            html += `<div class="chat-system-msg"><p>${msg.content}</p></div>`;
+        } else {
+            const initial = msg.name ? msg.name.charAt(0) : 'U';
+            html += `
+            <div class="chat-message-item">
+                <div class="chat-avatar-small">${initial}</div>
+                <div class="chat-msg-content">
+                    <span class="chat-msg-author">${escapeHtml(msg.name)}</span>
+                    <span class="chat-msg-time">${msg.time}</span>
+                    <p>${escapeHtml(msg.content)}</p>
+                </div>
+            </div>`;
+        }
+    });
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendOfferChatMessage() {
+    const input = document.getElementById('offerChatInput');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    offerChatMessages.push({
+        sender: 'current',
+        name: 'You',
+        content: message,
+        time: 'Just now'
+    });
+    
+    input.value = '';
+    loadOfferChat();
+    
+    // Simulate response after delay
+    setTimeout(() => {
+        const responses = [
+            {name: 'Career Hub Bot', content: 'Great question! Feel free to browse the offers above for more insights.'},
+            {name: 'Community', content: 'Thanks for sharing! The community appreciates your input.'},
+        ];
+        const resp = responses[Math.floor(Math.random() * responses.length)];
+        offerChatMessages.push({
+            sender: 'bot',
+            name: resp.name,
+            content: resp.content,
+            time: 'Just now'
+        });
+        loadOfferChat();
+    }, 1500);
+}
+
+// Load chatbot messages when showing offers tab
+const originalShowTab = showTab;
+showTab = function(tab, btn) {
+    originalShowTab(tab, btn);
+    if (tab === 'offers') {
+        loadOfferChat();
+    }
+};
+
+// Close modal on outside click
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+});
+</script>
+{% endblock %}

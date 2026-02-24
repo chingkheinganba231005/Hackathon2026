@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Alumni Mentor Chat - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>&#x1F464; Alumni Mentor Chat</h1>
+    <p>Connect with alumni working in your target industry</p>
+</div>
+
+<div class="page-container">
+    <div class="consultation-detail">
+        <div class="detail-hero">
+            <div class="detail-icon">&#x1F464;</div>
+            <div class="detail-info">
+                <h2>Alumni Mentor Chat</h2>
+                <p class="detail-tagline">30-minute virtual coffee chat with industry professionals</p>
+                <div class="detail-badges">
+                    <span class="badge-free">Free</span>
+                    <span class="badge-available">&#x1F7E2; 15+ Mentors Available</span>
+                    <span class="badge-popular">Popular</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-sections">
+            <div class="detail-section">
+                <h3>What You Can Get</h3>
+                <ul class="feature-list">
+                    <li>&#x2705; Insider industry knowledge and career path insights</li>
+                    <li>&#x2705; Tips for breaking into your target company</li>
+                    <li>&#x2705; Resume and application review from someone who made it</li>
+                    <li>&#x2705; Potential referral opportunities</li>
+                    <li>&#x2705; Networking connections in your field</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>Available Mentors</h3>
+                <div class="mentor-filters">
+                    <button class="filter-btn active" onclick="filterMentors('all', this)">All</button>
+                    <button class="filter-btn" onclick="filterMentors('finance', this)">Finance</button>
+                    <button class="filter-btn" onclick="filterMentors('tech', this)">Tech</button>
+                    <button class="filter-btn" onclick="filterMentors('consulting', this)">Consulting</button>
+                </div>
+                <div class="mentor-grid" id="mentorGrid">
+                    <div class="mentor-card" data-industry="finance">
+                        <div class="mentor-avatar">SC</div>
+                        <div class="mentor-info">
+                            <h4>Sarah C. <span class="verified-badge-gold">&#x2714;</span></h4>
+                            <p>Associate at Goldman Sachs</p>
+                            <span class="mentor-uni">HKU Alumni</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="requestMentor('sarah')">Request Chat</button>
+                    </div>
+                    <div class="mentor-card" data-industry="tech">
+                        <div class="mentor-avatar">ML</div>
+                        <div class="mentor-info">
+                            <h4>Michael L. <span class="verified-badge-gold">&#x2714;</span></h4>
+                            <p>Software Engineer at Google</p>
+                            <span class="mentor-uni">CUHK Alumni</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="requestMentor('michael')">Request Chat</button>
+                    </div>
+                    <div class="mentor-card" data-industry="consulting">
+                        <div class="mentor-avatar">JW</div>
+                        <div class="mentor-info">
+                            <h4>Jenny W. <span class="verified-badge-gold">&#x2714;</span></h4>
+                            <p>Consultant at McKinsey</p>
+                            <span class="mentor-uni">HKUST Alumni</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="requestMentor('jenny')">Request Chat</button>
+                    </div>
+                    <div class="mentor-card" data-industry="tech">
+                        <div class="mentor-avatar">EK</div>
+                        <div class="mentor-info">
+                            <h4>Emily K. <span class="verified-badge-gold">&#x2714;</span></h4>
+                            <p>Product Manager at Meta</p>
+                            <span class="mentor-uni">CUHK Alumni</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="requestMentor('emily')">Request Chat</button>
+                    </div>
+                    <div class="mentor-card" data-industry="finance">
+                        <div class="mentor-avatar">TW</div>
+                        <div class="mentor-info">
+                            <h4>Tom W. <span class="verified-badge-gold">&#x2714;</span></h4>
+                            <p>Manager at HSBC</p>
+                            <span class="mentor-uni">HKUST Alumni</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="requestMentor('tom')">Request Chat</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="/career-center" class="back-link">&#x2190; Back to Career Centre</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterMentors(industry, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.mentor-card').forEach(card => {
+        if (industry === 'all' || card.dataset.industry === industry) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function requestMentor(mentorId) {
+    if (!requireLogin('connect with mentors')) return;
+    showToast('Request sent! The mentor will respond within 24-48 hours.', 'success');
+}
+</script>
+{% endblock %}

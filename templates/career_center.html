@@ -1,0 +1,705 @@
+{% extends "base.html" %}
+
+{% block title %}Career Centre - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Career Planning Centre</h1>
+    <p>Your personalized hub for career assessment, planning, university resources, and alumni connections</p>
+</div>
+
+<div class="page-container">
+    <!-- Main Services Grid -->
+    <div class="center-grid">
+        <a href="/career-center/assessment" class="center-card">
+            <div class="center-icon" style="background: rgba(99,102,241,0.15);">&#x1F4CA;</div>
+            <h3>Self-Assessment</h3>
+            <p>Evaluate your competitiveness across multiple dimensions including career cognition, abilities, and interests.</p>
+            <span class="center-link">Start Assessment &#x2192;</span>
+        </a>
+
+        <a href="/career-center/planning" class="center-card">
+            <div class="center-icon" style="background: rgba(34,197,94,0.15);">&#x1F3AF;</div>
+            <h3>Career Development Plan</h3>
+            <p>Set your short-term and long-term goals, create implementation plans, and track your progress.</p>
+            <span class="center-link">Create Plan &#x2192;</span>
+        </a>
+
+        <a href="/personalized-route" class="center-card">
+            <div class="center-icon" style="background: rgba(245,158,11,0.15);">&#x1F5FA;</div>
+            <h3>Career Roadmap</h3>
+            <p>Get a year-by-year action plan tailored to your faculty and major with learning resources.</p>
+            <span class="center-link">View Roadmap &#x2192;</span>
+        </a>
+    </div>
+
+    <!-- University Resources Section -->
+    <div class="uni-resources-section">
+        <h2>&#x1F3EB; University Career Resources</h2>
+        <p class="section-desc">Direct links to official career services at Hong Kong universities</p>
+        
+        <div class="uni-grid">
+            <div class="uni-card hku">
+                <div class="uni-header">
+                    <span class="uni-logo">HKU</span>
+                    <span class="uni-name">The University of Hong Kong</span>
+                </div>
+                <div class="uni-links">
+                    <a href="https://cedars.hku.hk/careers/" target="_blank" rel="noopener" class="uni-link">
+                        <span>CEDARS Career Services</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://cedars.hku.hk/careers/job-internship/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Job & Internship Portal</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.alumni.hku.hk/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Alumni Network</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="uni-card cuhk">
+                <div class="uni-header">
+                    <span class="uni-logo">CUHK</span>
+                    <span class="uni-name">Chinese University of Hong Kong</span>
+                </div>
+                <div class="uni-links">
+                    <a href="https://career.cuhk.edu.hk/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Career Planning Centre</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://career.cuhk.edu.hk/student/job-board" target="_blank" rel="noopener" class="uni-link">
+                        <span>Job Board</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.alumni.cuhk.edu.hk/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Alumni Affairs Office</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="uni-card hkust">
+                <div class="uni-header">
+                    <span class="uni-logo">HKUST</span>
+                    <span class="uni-name">Hong Kong University of Science and Technology</span>
+                </div>
+                <div class="uni-links">
+                    <a href="https://career.hkust.edu.hk/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Career Center</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://career.hkust.edu.hk/web/page.php?section=jobs" target="_blank" rel="noopener" class="uni-link">
+                        <span>Job Listings</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://alumni.hkust.edu.hk/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Alumni Network</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="uni-card polyu">
+                <div class="uni-header">
+                    <span class="uni-logo">PolyU</span>
+                    <span class="uni-name">Hong Kong Polytechnic University</span>
+                </div>
+                <div class="uni-links">
+                    <a href="https://www.polyu.edu.hk/sao/careers/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Careers & Placement Services</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.polyu.edu.hk/sao/careers/job-vacancies/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Job Vacancies</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="uni-card cityu">
+                <div class="uni-header">
+                    <span class="uni-logo">CityU</span>
+                    <span class="uni-name">City University of Hong Kong</span>
+                </div>
+                <div class="uni-links">
+                    <a href="https://www.cityu.edu.hk/caio/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Career & Internship Office</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.cityu.edu.hk/caio/job-internship-portal" target="_blank" rel="noopener" class="uni-link">
+                        <span>Job & Internship Portal</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.cityu.edu.hk/alumni/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Alumni Network</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="uni-card hkbu">
+                <div class="uni-header">
+                    <span class="uni-logo">HKBU</span>
+                    <span class="uni-name">Hong Kong Baptist University</span>
+                </div>
+                <div class="uni-links">
+                    <a href="https://sa.hkbu.edu.hk/caps" target="_blank" rel="noopener" class="uni-link">
+                        <span>Career Advisory & Placement Services</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://sa.hkbu.edu.hk/caps/job-internship" target="_blank" rel="noopener" class="uni-link">
+                        <span>Job & Internship Portal</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://alumni.hkbu.edu.hk/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Alumni Affairs Office</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="uni-card lingnan">
+                <div class="uni-header">
+                    <span class="uni-logo">LU</span>
+                    <span class="uni-name">Lingnan University</span>
+                </div>
+                <div class="uni-links">
+                    <a href="https://www.ln.edu.hk/osa/careers" target="_blank" rel="noopener" class="uni-link">
+                        <span>Career Services</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.ln.edu.hk/osa/careers/job-portal" target="_blank" rel="noopener" class="uni-link">
+                        <span>Job Portal</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.ln.edu.hk/alumni/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Alumni Network</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="uni-card eduhk">
+                <div class="uni-header">
+                    <span class="uni-logo">EdUHK</span>
+                    <span class="uni-name">Education University of Hong Kong</span>
+                </div>
+                <div class="uni-links">
+                    <a href="https://www.eduhk.hk/sao/careers" target="_blank" rel="noopener" class="uni-link">
+                        <span>Career Services</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.eduhk.hk/sao/careers/job-portal" target="_blank" rel="noopener" class="uni-link">
+                        <span>Job & Internship Portal</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                    <a href="https://www.eduhk.hk/alumni/" target="_blank" rel="noopener" class="uni-link">
+                        <span>Alumni Affairs</span>
+                        <span class="ext">&#x2197;</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alumni Referral Network -->
+    <div class="alumni-section">
+        <h2>&#x1F91D; Alumni Referral Network</h2>
+        <p class="section-desc">Connect with verified alumni for career advice and referral opportunities</p>
+        
+        <div class="alumni-stats">
+            <div class="alumni-stat">
+                <span class="stat-num">500+</span>
+                <span class="stat-label">Verified Alumni</span>
+            </div>
+            <div class="alumni-stat">
+                <span class="stat-num">200+</span>
+                <span class="stat-label">Companies Represented</span>
+            </div>
+            <div class="alumni-stat">
+                <span class="stat-num">50+</span>
+                <span class="stat-label">Referrals Made</span>
+            </div>
+        </div>
+
+        <div class="alumni-industries">
+            <h4>Browse by Industry</h4>
+            <div class="industry-chips">
+                <button class="industry-chip active" onclick="filterAlumni('all', this)">All Industries</button>
+                <button class="industry-chip" onclick="filterAlumni('finance', this)">Finance & Banking</button>
+                <button class="industry-chip" onclick="filterAlumni('tech', this)">Technology</button>
+                <button class="industry-chip" onclick="filterAlumni('consulting', this)">Consulting</button>
+                <button class="industry-chip" onclick="filterAlumni('legal', this)">Legal</button>
+            </div>
+        </div>
+
+        <div class="alumni-grid" id="alumniGrid">
+            <!-- Alumni cards loaded dynamically -->
+        </div>
+        
+        <div class="alumni-cta">
+            <p>Are you a working professional? Help students with career guidance!</p>
+            <a href="/verification" class="btn btn-secondary">Become a Verified Alumni Mentor</a>
+        </div>
+    </div>
+
+    <!-- Consultation Booking -->
+    <div class="consultation-section">
+        <h2>&#x1F4C5; Book a Career Consultation</h2>
+        <p class="section-desc">Schedule a one-on-one session with career advisors or alumni mentors</p>
+
+        <div class="consultation-types">
+            <a href="/consultation/advisor" class="consult-card consult-link">
+                <div class="consult-icon">&#x1F393;</div>
+                <h4>Career Advisor Session</h4>
+                <p>45-minute session with professional career counselors for guidance on career planning, resume review, and interview prep.</p>
+                <div class="consult-meta">
+                    <span class="availability">&#x1F7E2; Available this week</span>
+                    <span class="price">Free for students</span>
+                </div>
+                <span class="consult-link-text">Learn More & Book &#x2192;</span>
+            </a>
+
+            <a href="/consultation/mentor" class="consult-card featured consult-link">
+                <span class="featured-tag">Popular</span>
+                <div class="consult-icon">&#x1F464;</div>
+                <h4>Alumni Mentor Chat</h4>
+                <p>30-minute virtual coffee chat with alumni working in your target industry. Get insider tips and potential referrals.</p>
+                <div class="consult-meta">
+                    <span class="availability">&#x1F7E2; 15+ mentors available</span>
+                    <span class="price">Free</span>
+                </div>
+                <span class="consult-link-text">Find a Mentor &#x2192;</span>
+            </a>
+
+            <a href="/consultation/interview" class="consult-card consult-link">
+                <div class="consult-icon">&#x1F3A4;</div>
+                <h4>Mock Interview</h4>
+                <p>Practice behavioral and technical interviews with experienced interviewers.</p>
+                <div class="consult-meta">
+                    <span class="availability">&#x1F7E2; Book 3 days ahead</span>
+                    <span class="price">Free</span>
+                </div>
+                <span class="consult-link-text">Schedule Mock &#x2192;</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Upload CV Section - Below Consultation -->
+    <div class="upload-cv-section">
+        <h2>&#x1F4C4; Upload CV / Resume</h2>
+        <p class="section-desc">Get personalized feedback from our career experts within 3-5 business days</p>
+        <div class="upload-cv-card" onclick="openUploadModal()">
+            <div class="upload-icon">&#x1F4C4;</div>
+            <div class="upload-info">
+                <h4>Submit Your CV for Expert Review</h4>
+                <p>Upload your CV and receive detailed feedback on formatting, content, and industry-specific recommendations.</p>
+                <ul class="upload-benefits">
+                    <li>&#x2705; Professional formatting review</li>
+                    <li>&#x2705; Content optimization tips</li>
+                    <li>&#x2705; Industry-specific advice</li>
+                    <li>&#x2705; ATS compatibility check</li>
+                </ul>
+            </div>
+            <button class="btn btn-primary btn-lg">Upload Now &#x2192;</button>
+        </div>
+    </div>
+</div>
+
+<!-- CV Upload Modal -->
+<div class="modal" id="uploadModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeUploadModal()">&times;</span>
+        <h2>&#x1F4C4; Upload Your CV / Resume</h2>
+        <p class="modal-desc">Get personalized feedback from our career experts within 3-5 business days.</p>
+        
+        <form id="uploadForm" onsubmit="submitCV(event)">
+            <div class="form-group">
+                <label>Your Faculty</label>
+                <select class="form-control" id="cvFaculty" required>
+                    <option value="">Select your faculty</option>
+                    <option value="business">Business & Economics</option>
+                    <option value="engineering">Engineering</option>
+                    <option value="science">Science</option>
+                    <option value="arts">Arts & Humanities</option>
+                    <option value="social_science">Social Sciences</option>
+                    <option value="law">Law</option>
+                    <option value="medicine">Medicine</option>
+                    <option value="education">Education</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Target Industry</label>
+                <select class="form-control" id="cvIndustry" required>
+                    <option value="">Select target industry</option>
+                    <option value="finance">Finance & Banking</option>
+                    <option value="tech">Technology</option>
+                    <option value="consulting">Consulting</option>
+                    <option value="accounting">Accounting (Big 4)</option>
+                    <option value="legal">Legal</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="government">Government</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Upload CV (PDF or DOCX, max 5MB)</label>
+                <div class="file-upload-area" id="fileUploadArea">
+                    <input type="file" id="cvFile" accept=".pdf,.docx,.doc" onchange="handleFileSelect(this)" required>
+                    <div class="upload-placeholder" id="uploadPlaceholder">
+                        <span class="upload-icon">&#x1F4C1;</span>
+                        <span>Click or drag file here</span>
+                        <span class="file-types">PDF, DOCX (max 5MB)</span>
+                    </div>
+                    <div class="file-selected" id="fileSelected" style="display:none;">
+                        <span class="file-icon">&#x1F4C4;</span>
+                        <span class="file-name" id="fileName"></span>
+                        <button type="button" class="remove-file" onclick="removeFile()">&times;</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Additional Comments (Optional)</label>
+                <textarea class="form-control" id="cvComments" rows="3" placeholder="Any specific areas you'd like feedback on?"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">Submit for Review</button>
+        </form>
+    </div>
+</div>
+
+<!-- Booking Modal -->
+<div class="modal" id="bookingModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeBookingModal()">&times;</span>
+        <h2 id="bookingTitle">Book Consultation</h2>
+        <form id="bookingForm" onsubmit="submitBooking(event)">
+            <div class="form-group">
+                <label>Consultation Type</label>
+                <select class="form-control" id="consultType" required>
+                    <option value="advisor">Career Advisor Session</option>
+                    <option value="mentor">Alumni Mentor Chat</option>
+                    <option value="interview">Mock Interview</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Your Faculty</label>
+                <select class="form-control" id="bookingFaculty" required>
+                    <option value="">Select your faculty</option>
+                    <option value="business">Business & Economics</option>
+                    <option value="engineering">Engineering</option>
+                    <option value="science">Science</option>
+                    <option value="arts">Arts & Humanities</option>
+                    <option value="social_science">Social Sciences</option>
+                    <option value="law">Law</option>
+                    <option value="medicine">Medicine</option>
+                    <option value="education">Education</option>
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Preferred Date</label>
+                    <input type="date" class="form-control" id="consultDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Preferred Time</label>
+                    <select class="form-control" id="consultTime" required>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="14:00">2:00 PM</option>
+                        <option value="15:00">3:00 PM</option>
+                        <option value="16:00">4:00 PM</option>
+                        <option value="17:00">5:00 PM</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>What would you like to discuss?</label>
+                <textarea class="form-control" id="consultTopic" rows="3" placeholder="Brief description of your questions or goals..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Confirm Booking</button>
+        </form>
+    </div>
+</div>
+
+<!-- Alumni Chat Modal -->
+<div class="modal" id="alumniChatModal">
+    <div class="modal-content modal-chat">
+        <span class="modal-close" onclick="closeAlumniChat()">&times;</span>
+        <div class="chat-header">
+            <div class="chat-avatar" id="chatAvatar">S</div>
+            <div class="chat-info">
+                <h3 id="chatAlumniName">Sarah C.</h3>
+                <span id="chatAlumniRole">Associate at Goldman Sachs</span>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-welcome">
+                <p>Start your conversation with this alumni mentor. Be professional and specific about your questions!</p>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter')sendAlumniMessage()">
+            <button class="btn btn-primary" onclick="sendAlumniMessage()">Send</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Sample alumni data with IDs for messaging
+const alumniData = [
+    {id: "alumni1", name: "Sarah C.", company: "Goldman Sachs", role: "Associate", industry: "finance", uni: "HKU", verified: true},
+    {id: "alumni2", name: "Michael L.", company: "Google", role: "Software Engineer", industry: "tech", uni: "CUHK", verified: true},
+    {id: "alumni3", name: "Jenny W.", company: "McKinsey", role: "Consultant", industry: "consulting", uni: "HKUST", verified: true},
+    {id: "alumni4", name: "David T.", company: "J.P. Morgan", role: "Analyst", industry: "finance", uni: "HKU", verified: true},
+    {id: "alumni5", name: "Emily K.", company: "Meta", role: "Product Manager", industry: "tech", uni: "CUHK", verified: true},
+    {id: "alumni6", name: "Kevin H.", company: "Baker McKenzie", role: "Associate", industry: "legal", uni: "HKU", verified: true},
+    {id: "alumni7", name: "Lisa Z.", company: "Deloitte", role: "Senior Consultant", industry: "consulting", uni: "PolyU", verified: true},
+    {id: "alumni8", name: "Tom W.", company: "HSBC", role: "Manager", industry: "finance", uni: "HKUST", verified: true},
+];
+
+let currentChatAlumni = null;
+let chatHistory = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadAlumni('all');
+    // Set min date for booking
+    const dateInput = document.getElementById('consultDate');
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateInput.min = tomorrow.toISOString().split('T')[0];
+});
+
+function filterAlumni(industry, btn) {
+    document.querySelectorAll('.industry-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    loadAlumni(industry);
+}
+
+function loadAlumni(industry) {
+    const grid = document.getElementById('alumniGrid');
+    let filtered = industry === 'all' ? alumniData : alumniData.filter(a => a.industry === industry);
+    
+    if (filtered.length === 0) {
+        grid.innerHTML = '<p class="no-alumni">No alumni found in this industry yet.</p>';
+        return;
+    }
+    
+    grid.innerHTML = filtered.map(a => `
+        <div class="alumni-card">
+            <div class="alumni-avatar">${a.name.charAt(0)}</div>
+            <div class="alumni-info">
+                <div class="alumni-name">${a.name} ${a.verified ? '<span class="verified-badge-gold small">&#x2714;</span>' : ''}</div>
+                <div class="alumni-role">${a.role} at ${a.company}</div>
+                <div class="alumni-uni">${a.uni} Alumni</div>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openAlumniChat('${a.id}')">&#x2709; Message</button>
+        </div>
+    `).join('');
+}
+
+function openAlumniChat(alumniId) {
+    if (!requireLogin('message alumni')) return;
+    
+    const alumni = alumniData.find(a => a.id === alumniId);
+    if (!alumni) return;
+    
+    currentChatAlumni = alumni;
+    document.getElementById('chatAvatar').textContent = alumni.name.charAt(0);
+    document.getElementById('chatAlumniName').textContent = alumni.name;
+    document.getElementById('chatAlumniRole').textContent = `${alumni.role} at ${alumni.company}`;
+    
+    // Load chat history if exists
+    const messages = chatHistory[alumniId] || [];
+    const chatContainer = document.getElementById('chatMessages');
+    
+    if (messages.length === 0) {
+        chatContainer.innerHTML = `
+            <div class="chat-welcome">
+                <p>Start your conversation with ${alumni.name}. Be professional and specific about your questions!</p>
+                <div class="suggested-messages">
+                    <span class="suggested-label">Suggested:</span>
+                    <button class="suggested-msg" onclick="sendSuggested('Hi! I\\'m interested in learning about your career path.')">Career path</button>
+                    <button class="suggested-msg" onclick="sendSuggested('Could you share any tips for breaking into ${alumni.industry}?')">Industry tips</button>
+                    <button class="suggested-msg" onclick="sendSuggested('Would you be open to a quick call sometime?')">Request call</button>
+                </div>
+            </div>`;
+    } else {
+        renderChatMessages(messages);
+    }
+    
+    document.getElementById('alumniChatModal').classList.add('active');
+    document.getElementById('chatInput').focus();
+}
+
+function sendSuggested(msg) {
+    document.getElementById('chatInput').value = msg;
+    sendAlumniMessage();
+}
+
+function sendAlumniMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (!message || !currentChatAlumni) return;
+    
+    // Initialize chat history for this alumni if needed
+    if (!chatHistory[currentChatAlumni.id]) {
+        chatHistory[currentChatAlumni.id] = [];
+    }
+    
+    // Add user message
+    chatHistory[currentChatAlumni.id].push({
+        sender: 'user',
+        content: message,
+        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
+    });
+    
+    input.value = '';
+    renderChatMessages(chatHistory[currentChatAlumni.id]);
+    
+    // Simulate alumni response after a delay
+    setTimeout(() => {
+        const responses = [
+            `Thanks for reaching out! I'd be happy to help with your questions about ${currentChatAlumni.industry}.`,
+            `Great question! In my experience at ${currentChatAlumni.company}, I've found that...`,
+            `That's a common concern. Let me share what worked for me...`,
+            `I remember being in your shoes! Here's my advice...`
+        ];
+        
+        chatHistory[currentChatAlumni.id].push({
+            sender: 'alumni',
+            content: responses[Math.floor(Math.random() * responses.length)],
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
+        });
+        
+        renderChatMessages(chatHistory[currentChatAlumni.id]);
+    }, 1500);
+}
+
+function renderChatMessages(messages) {
+    const container = document.getElementById('chatMessages');
+    container.innerHTML = messages.map(m => `
+        <div class="chat-message ${m.sender}">
+            <div class="message-content">${escapeHtml(m.content)}</div>
+            <div class="message-time">${m.time}</div>
+        </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+}
+
+function closeAlumniChat() {
+    document.getElementById('alumniChatModal').classList.remove('active');
+    currentChatAlumni = null;
+}
+
+function openBookingModal(type) {
+    if (!requireLogin('book consultations')) return;
+    
+    document.getElementById('consultType').value = type;
+    const titles = {
+        'advisor': 'Book Career Advisor Session',
+        'mentor': 'Connect with Alumni Mentor',
+        'interview': 'Schedule Mock Interview'
+    };
+    document.getElementById('bookingTitle').textContent = titles[type] || 'Book Consultation';
+    document.getElementById('bookingModal').classList.add('active');
+}
+
+function closeBookingModal() {
+    document.getElementById('bookingModal').classList.remove('active');
+}
+
+function submitBooking(e) {
+    e.preventDefault();
+    const type = document.getElementById('consultType').value;
+    const faculty = document.getElementById('bookingFaculty').value;
+    const date = document.getElementById('consultDate').value;
+    const time = document.getElementById('consultTime').value;
+    
+    if (!faculty) {
+        showToast('Please select your faculty', 'error');
+        return;
+    }
+    
+    showToast(`Booking confirmed for ${date} at ${time}!`, 'success');
+    closeBookingModal();
+    document.getElementById('bookingForm').reset();
+}
+
+// CV Upload functions
+function openUploadModal() {
+    if (!requireLogin('upload CV')) return;
+    document.getElementById('uploadModal').classList.add('active');
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadModal').classList.remove('active');
+}
+
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('File size must be less than 5MB', 'error');
+        input.value = '';
+        return;
+    }
+    
+    // Validate file type
+    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!validTypes.includes(file.type)) {
+        showToast('Please upload a PDF or DOCX file', 'error');
+        input.value = '';
+        return;
+    }
+    
+    document.getElementById('uploadPlaceholder').style.display = 'none';
+    document.getElementById('fileSelected').style.display = 'flex';
+    document.getElementById('fileName').textContent = file.name;
+}
+
+function removeFile() {
+    document.getElementById('cvFile').value = '';
+    document.getElementById('uploadPlaceholder').style.display = 'flex';
+    document.getElementById('fileSelected').style.display = 'none';
+}
+
+function submitCV(e) {
+    e.preventDefault();
+    
+    const faculty = document.getElementById('cvFaculty').value;
+    const industry = document.getElementById('cvIndustry').value;
+    const file = document.getElementById('cvFile').files[0];
+    
+    if (!faculty || !industry || !file) {
+        showToast('Please fill all required fields', 'error');
+        return;
+    }
+    
+    // In production, this would upload to server
+    showToast('CV submitted successfully! You\'ll receive feedback within 3-5 business days.', 'success');
+    closeUploadModal();
+    document.getElementById('uploadForm').reset();
+    document.getElementById('uploadPlaceholder').style.display = 'flex';
+    document.getElementById('fileSelected').style.display = 'none';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

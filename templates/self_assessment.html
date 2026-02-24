@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}Self-Assessment - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Competitiveness Self-Assessment</h1>
+    <p>Rate yourself across multiple dimensions to evaluate your career readiness</p>
+</div>
+
+<div class="page-container">
+    <div class="breadcrumb">
+        <a href="/career-center">Career Center</a> &rsaquo; <span>Self-Assessment</span>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="assessment-progress">
+        <div class="progress-steps">
+            <div class="progress-step active" data-step="1">1. Industry</div>
+            <div class="progress-step" data-step="2">2. Experience</div>
+            <div class="progress-step" data-step="3">3. Career Cognition</div>
+            <div class="progress-step" data-step="4">4. Abilities</div>
+            <div class="progress-step" data-step="5">5. Interests</div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:20%"></div>
+        </div>
+    </div>
+
+    <div class="assessment-form card">
+        <!-- Step 1: Industry & Subcategory Selection -->
+        <div class="assessment-step active" id="step1">
+            <h3>Choose Your Career Field & Subcategory</h3>
+            <p class="step-desc">Select your target career field, then choose a specific subcategory to receive tailored assessment guidelines.</p>
+
+            <div class="form-group">
+                <label>Career Field *</label>
+                <select class="form-control" id="careerField" onchange="updateSubcategories()">
+                    <option value="">Select a field...</option>
+                    {% for key, data in subcategories.items() %}
+                    <option value="{{ key }}">{{ data.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" id="subcatGroup" style="display:none;">
+                <label>Subcategory *</label>
+                <select class="form-control" id="careerSubcat" onchange="showGuidelines()">
+                    <option value="">Select a subcategory...</option>
+                </select>
+            </div>
+
+            <div id="guidelinesPanel" class="guidelines-panel" style="display:none;">
+                <h4 id="guidelinesTitle">Industry Assessment Guidelines</h4>
+                <ul id="guidelinesList" class="guidelines-list"></ul>
+            </div>
+        </div>
+
+        <!-- Step 2: Original Dimensions -->
+        <div class="assessment-step" id="step2">
+            <h3>Experience & Credentials</h3>
+            <p class="step-desc">Rate your academic and professional experience</p>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>GPA / Grade Points</label>
+                    <span class="value" id="val-gpa">5</span>
+                </div>
+                <div class="slider-description">1 = below average, 10 = First Class Honours / Dean's List</div>
+                <input type="range" min="0" max="10" value="5" id="slider-gpa" oninput="updateSlider('gpa')">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Internship Experience</label>
+                    <span class="value" id="val-internships">5</span>
+                </div>
+                <div class="slider-description">1 = none, 5 = 1-2 internships, 10 = multiple top-tier internships</div>
+                <input type="range" min="0" max="10" value="5" id="slider-internships" oninput="updateSlider('internships')">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Certifications</label>
+                    <span class="value" id="val-certifications">5</span>
+                </div>
+                <div class="slider-description">1 = none, 5 = 1-2 certs, 10 = CFA/CPA/AWS/multiple advanced certs</div>
+                <input type="range" min="0" max="10" value="5" id="slider-certifications" oninput="updateSlider('certifications')">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Competitions</label>
+                    <span class="value" id="val-competitions">5</span>
+                </div>
+                <div class="slider-description">1 = none, 5 = participated, 10 = national/international wins</div>
+                <input type="range" min="0" max="10" value="5" id="slider-competitions" oninput="updateSlider('competitions')">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Projects</label>
+                    <span class="value" id="val-projects">5</span>
+                </div>
+                <div class="slider-description">1 = none, 5 = some coursework projects, 10 = impressive portfolio with real impact</div>
+                <input type="range" min="0" max="10" value="5" id="slider-projects" oninput="updateSlider('projects')">
+            </div>
+        </div>
+
+        <!-- Step 3: Career Cognition -->
+        <div class="assessment-step" id="step3">
+            <h3>Career Cognition</h3>
+            <p class="step-desc">How well do you understand your career direction?</p>
+
+            {% for dim in expanded.career_cognition.dimensions %}
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>{{ dim.label }}</label>
+                    <span class="value" id="val-cc-{{ dim.id }}">3</span>
+                </div>
+                <div class="slider-description">{{ dim.desc }}</div>
+                <input type="range" min="1" max="5" value="3" id="slider-cc-{{ dim.id }}" oninput="updateSlider('cc-{{ dim.id }}')">
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Step 4: Abilities -->
+        <div class="assessment-step" id="step4">
+            <h3>Ability Assessment</h3>
+            <p class="step-desc">Rate your skills and capabilities</p>
+
+            {% for dim in expanded.abilities.dimensions %}
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>{{ dim.label }}</label>
+                    <span class="value" id="val-ab-{{ dim.id }}">3</span>
+                </div>
+                <div class="slider-description">{{ dim.desc }}</div>
+                <input type="range" min="1" max="5" value="3" id="slider-ab-{{ dim.id }}" oninput="updateSlider('ab-{{ dim.id }}')">
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Step 5: Interests -->
+        <div class="assessment-step" id="step5">
+            <h3>Interests & Preferences</h3>
+            <p class="step-desc">What type of work and environment suits you?</p>
+
+            <div class="form-group">
+                <label>Type of Work (select all that apply)</label>
+                <div class="checkbox-grid">
+                    {% for type in expanded.interests.work_types %}
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="work_type" value="{{ type }}">
+                        <span>{{ type }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Industries of Interest (select all that apply)</label>
+                <div class="checkbox-grid">
+                    {% for ind in expanded.interests.industries %}
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="industry" value="{{ ind }}">
+                        <span>{{ ind }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Preferred Work Pattern</label>
+                <select class="form-control" id="workPattern">
+                    <option value="">Select...</option>
+                    {% for pattern in expanded.interests.work_patterns %}
+                    <option value="{{ pattern }}">{{ pattern }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Core Strengths</label>
+                <textarea class="form-control" id="strengths" rows="2" placeholder="List your top 3-5 strengths"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Areas for Improvement</label>
+                <textarea class="form-control" id="weaknesses" rows="2" placeholder="What areas do you want to develop?"></textarea>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="step-navigation">
+            <button class="btn btn-secondary" id="prevBtn" onclick="prevStep()" style="display:none;">Previous</button>
+            <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Next</button>
+            <button class="btn btn-primary" id="submitBtn" onclick="submitAssessment()" style="display:none;">Calculate Assessment</button>
+        </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="result-panel" id="resultPanel">
+        <div class="score-circle" id="scoreCircle">
+            <span class="number" id="scoreNumber">0</span>
+            <span class="label">out of 100</span>
+        </div>
+        <div class="result-level" id="resultLevel">-</div>
+        <div class="result-advice" id="resultAdvice">-</div>
+
+        <h3 style="font-size:1rem;margin-bottom:12px;color:var(--text-dim);">Score Breakdown</h3>
+        <div class="breakdown-grid" id="breakdownGrid"></div>
+
+        <div style="margin-top:32px;">
+            <button class="btn btn-secondary" onclick="resetAssessment()">Retake Assessment</button>
+            <a href="/career-center/planning" class="btn btn-primary" style="margin-left:8px;">Create Career Plan</a>
+            <a href="/personalized-route" class="btn btn-secondary" style="margin-left:8px;">My Route</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentStep = 1;
+const totalSteps = 5;
+const subcategoryData = {{ subcategories | tojson }};
+
+function updateSubcategories() {
+    const field = document.getElementById('careerField').value;
+    const subcatGroup = document.getElementById('subcatGroup');
+    const subcatSelect = document.getElementById('careerSubcat');
+    const guidelinesPanel = document.getElementById('guidelinesPanel');
+
+    guidelinesPanel.style.display = 'none';
+
+    if (!field || !subcategoryData[field]) {
+        subcatGroup.style.display = 'none';
+        return;
+    }
+
+    subcatSelect.innerHTML = '<option value="">Select a subcategory...</option>';
+    const subs = subcategoryData[field].subcategories;
+    for (const [key, data] of Object.entries(subs)) {
+        subcatSelect.innerHTML += `<option value="${key}">${data.label}</option>`;
+    }
+    subcatGroup.style.display = 'block';
+}
+
+function showGuidelines() {
+    const field = document.getElementById('careerField').value;
+    const subcat = document.getElementById('careerSubcat').value;
+    const panel = document.getElementById('guidelinesPanel');
+
+    if (!field || !subcat || !subcategoryData[field]) {
+        panel.style.display = 'none';
+        return;
+    }
+
+    const data = subcategoryData[field].subcategories[subcat];
+    if (!data) { panel.style.display = 'none'; return; }
+
+    document.getElementById('guidelinesTitle').textContent = data.label + ' - Assessment Guidelines';
+    const list = document.getElementById('guidelinesList');
+    list.innerHTML = data.guidelines.map(g => `<li>${g}</li>`).join('');
+    panel.style.display = 'block';
+}
+
+function updateSlider(key) {
+    const slider = document.getElementById('slider-' + key);
+    document.getElementById('val-' + key).textContent = slider.value;
+}
+
+function showStep(step) {
+    document.querySelectorAll('.assessment-step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + step).classList.add('active');
+
+    document.querySelectorAll('.progress-step').forEach((s, i) => {
+        s.classList.toggle('active', i < step);
+        s.classList.toggle('current', i + 1 === step);
+    });
+
+    document.getElementById('progressFill').style.width = (step / totalSteps * 100) + '%';
+
+    document.getElementById('prevBtn').style.display = step > 1 ? 'inline-block' : 'none';
+    document.getElementById('nextBtn').style.display = step < totalSteps ? 'inline-block' : 'none';
+    document.getElementById('submitBtn').style.display = step === totalSteps ? 'inline-block' : 'none';
+}
+
+function nextStep() {
+    if (currentStep < totalSteps) {
+        currentStep++;
+        showStep(currentStep);
+    }
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+    }
+}
+
+function submitAssessment() {
+    const scores = {
+        career_field: document.getElementById('careerField').value,
+        career_subcat: document.getElementById('careerSubcat').value,
+        gpa: document.getElementById('slider-gpa').value,
+        internships: document.getElementById('slider-internships').value,
+        certifications: document.getElementById('slider-certifications').value,
+        competitions: document.getElementById('slider-competitions').value,
+        projects: document.getElementById('slider-projects').value,
+        career_cognition: {
+            positioning: document.getElementById('slider-cc-positioning').value,
+            industry: document.getElementById('slider-cc-industry').value,
+            path: document.getElementById('slider-cc-path').value
+        },
+        abilities: {
+            professional: document.getElementById('slider-ab-professional').value,
+            communication: document.getElementById('slider-ab-communication').value,
+            learning: document.getElementById('slider-ab-learning').value,
+            execution: document.getElementById('slider-ab-execution').value,
+            stress: document.getElementById('slider-ab-stress').value
+        }
+    };
+
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Calculating...';
+    btn.disabled = true;
+
+    fetch('/api/assess', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({scores: scores})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) return;
+
+        const panel = document.getElementById('resultPanel');
+        panel.classList.add('show');
+
+        // Animate score
+        const scoreEl = document.getElementById('scoreNumber');
+        const circle = document.getElementById('scoreCircle');
+        let current = 0;
+        const target = data.total;
+        const interval = setInterval(() => {
+            current += 1;
+            if (current >= target) {
+                current = target;
+                clearInterval(interval);
+            }
+            scoreEl.textContent = Math.round(current);
+        }, 20);
+
+        circle.style.borderColor = data.color;
+        scoreEl.style.color = data.color;
+
+        document.getElementById('resultLevel').textContent = data.level;
+        document.getElementById('resultLevel').style.color = data.color;
+        document.getElementById('resultAdvice').textContent = data.advice;
+
+        // Breakdown
+        let html = '';
+        for (const [key, val] of Object.entries(data.breakdown)) {
+            html += `<div class="breakdown-item">
+                <div class="dim-label">${val.label}</div>
+                <div class="dim-score">${val.raw}/10 <span style="font-size:0.75rem;color:var(--text-dim);font-weight:400;">(${val.weighted}pts)</span></div>
+            </div>`;
+        }
+        document.getElementById('breakdownGrid').innerHTML = html;
+
+        panel.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+        btn.textContent = 'Calculate Assessment';
+        btn.disabled = false;
+    });
+}
+
+function resetAssessment() {
+    document.getElementById('resultPanel').classList.remove('show');
+    currentStep = 1;
+    showStep(1);
+
+    // Reset field/subcat
+    document.getElementById('careerField').value = '';
+    document.getElementById('subcatGroup').style.display = 'none';
+    document.getElementById('guidelinesPanel').style.display = 'none';
+
+    // Reset all sliders
+    ['gpa','internships','certifications','competitions','projects'].forEach(key => {
+        document.getElementById('slider-' + key).value = 5;
+        document.getElementById('val-' + key).textContent = '5';
+    });
+    ['cc-positioning','cc-industry','cc-path','ab-professional','ab-communication','ab-learning','ab-execution','ab-stress'].forEach(key => {
+        const el = document.getElementById('slider-' + key);
+        if (el) {
+            el.value = 3;
+            document.getElementById('val-' + key).textContent = '3';
+        }
+    });
+
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+</script>
+{% endblock %}

@@ -1,0 +1,681 @@
+{% extends "base.html" %}
+
+{% block title %}Experience Sharing - Career Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Senior Student Experiences</h1>
+    <p>Learn from alumni and senior students. Share anonymously or with your name.</p>
+</div>
+
+<div class="page-container">
+    <div class="exp-header">
+        <div class="filter-bar">
+            <input type="text" class="form-control search-input" id="searchInput" placeholder="Search posts and comments..." onkeyup="debounceSearch()">
+            <select id="filterCategory" onchange="loadPosts()">
+                <option value="all">All Categories</option>
+                <option value="internship">Internship</option>
+                <option value="interview">Interview</option>
+                <option value="resume">Resume</option>
+                <option value="career_advice">Career Advice</option>
+                <option value="internal_promotion">Internal Promotion</option>
+                <option value="dream_job">Dream Job</option>
+            </select>
+            <select id="filterFaculty" onchange="loadPosts()">
+                <option value="all">All Faculties</option>
+                <option value="finance_business">Finance & Business</option>
+                <option value="it_engineering">IT / CS-Engineering</option>
+                <option value="arts">Faculty of Arts</option>
+                <option value="academic">Academic</option>
+                <option value="government">Government</option>
+            </select>
+        </div>
+        <div class="exp-actions">
+            <a href="/experience-sharing/hottest" class="btn btn-accent">&#x1F525; Hottest Posts</a>
+            <button class="btn btn-primary" onclick="openModal()">Share Your Experience</button>
+        </div>
+    </div>
+
+    <!-- Active tag filter indicator -->
+    <div id="activeFilters" class="active-filters" style="display:none;">
+        <span>Filtered by: </span>
+        <span id="filterTagLabel" class="filter-tag-active"></span>
+        <button onclick="clearTagFilter()" class="clear-filter-btn">&times; Clear</button>
+    </div>
+
+    <div id="postsContainer">
+        <div class="spinner"></div>
+    </div>
+</div>
+
+<!-- Create Post Modal -->
+<div class="modal-overlay" id="postModal">
+    <div class="modal">
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+        <h2>Share Your Experience</h2>
+
+        <div class="form-group">
+            <label>Title *</label>
+            <input type="text" class="form-control" id="postTitle" placeholder="e.g., My Internship Experience at HSBC">
+        </div>
+
+        <div class="form-group">
+            <label>Your Story *</label>
+            <textarea class="form-control" id="postContent" rows="6" placeholder="Share your experience, tips, and advice for fellow students..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Category *</label>
+            <select class="form-control" id="postCategory">
+                <option value="career_advice">Career Advice</option>
+                <option value="internship">Internship</option>
+                <option value="interview">Interview</option>
+                <option value="resume">Resume</option>
+                <option value="internal_promotion">Internal Promotion</option>
+                <option value="dream_job">Dream Job</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Tags (Select up to 3)</label>
+            <div class="tag-selector" id="tagSelector">
+                {% for cat_key, cat_data in tag_categories.items() %}
+                <div class="tag-category">
+                    <span class="tag-cat-label" style="color:{{ cat_data.color }}">{{ cat_data.label }}</span>
+                    <div class="tag-options">
+                        {% for sub in cat_data.subcategories %}
+                        <label class="tag-option">
+                            <input type="checkbox" name="tags" value="{{ cat_key }}:{{ sub }}" onchange="checkTagLimit(this)">
+                            <span class="tag-chip" style="border-color:{{ cat_data.color }}">{{ sub|replace('_', ' ')|title }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Custom Tags (Optional, max 2)</label>
+            <div class="custom-tag-input">
+                <input type="text" class="form-control" id="customTagInput" placeholder="Add custom tag (2-10 chars)" maxlength="10">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="addCustomTag()">Add</button>
+            </div>
+            <div id="customTagsList" class="custom-tags-list"></div>
+            <div id="customTagHistory" class="custom-tag-history"></div>
+            <span class="input-hint">Chinese, English, or numbers only. No special characters.</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+                <label>Faculty</label>
+                <select class="form-control" id="postFaculty">
+                    <option value="finance_business">Finance & Business</option>
+                    <option value="it_engineering">IT / CS-Engineering</option>
+                    <option value="arts">Faculty of Arts</option>
+                    <option value="academic">Academic</option>
+                    <option value="entrepreneurship">Entrepreneurship</option>
+                    <option value="government">Government</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>University</label>
+                <select class="form-control" id="postUniversity">
+                    <option value="HKU">HKU</option>
+                    <option value="CUHK">CUHK</option>
+                    <option value="HKUST">HKUST</option>
+                    <option value="PolyU">PolyU</option>
+                    <option value="CityU">CityU</option>
+                    <option value="HKBU">HKBU</option>
+                    <option value="LingnanU">LingnanU</option>
+                    <option value="EdUHK">EdUHK</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Your Name (if not anonymous)</label>
+            <input type="text" class="form-control" id="postAuthor" placeholder="Optional">
+        </div>
+
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="postAnonymous" checked>
+                <label for="postAnonymous" style="margin:0;cursor:pointer;">Post anonymously</label>
+            </div>
+        </div>
+
+        <div class="error-message" id="postError" style="display:none;"></div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitPost()" id="submitBtn">Share Experience</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const currentUserId = '{{ current_user_id or "" }}';
+let customTags = [];
+let activeTagFilter = '';
+let searchTimeout;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadPosts();
+    loadCustomTagHistory();
+});
+
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(loadPosts, 300);
+}
+
+function loadPosts() {
+    const category = document.getElementById('filterCategory').value;
+    const faculty = document.getElementById('filterFaculty').value;
+    const search = document.getElementById('searchInput').value;
+    const container = document.getElementById('postsContainer');
+
+    container.innerHTML = '<div class="spinner"></div>';
+
+    let url = `/api/posts?category=${category}&faculty=${faculty}`;
+    if (activeTagFilter) url += `&tag=${activeTagFilter}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+
+    fetch(url)
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success || data.posts.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="icon">&#x1F4AD;</div><p>No posts found. Be the first to share!</p></div>';
+            return;
+        }
+
+        let html = '';
+        data.posts.forEach(post => {
+            const initial = post.author.charAt(0).toUpperCase();
+            const categoryLabel = post.category.replace(/_/g, ' ');
+            const isOwner = currentUserId && post.author_id === currentUserId;
+            const userLiked = post.user_liked;
+            const verifiedBadge = post.author_verified ? '<span class="verified-badge-gold" title="Verified Alumni">&#x2714;</span>' : '';
+
+            // Build tags display
+            let tagsHtml = '';
+            if (post.tags && post.tags.length > 0) {
+                tagsHtml = post.tags.map(t => {
+                    const catInfo = getTagCategoryInfo(t.category);
+                    return `<span class="post-tag" style="background:${catInfo.color}20;color:${catInfo.color};border-color:${catInfo.color}" onclick="filterByTag('${t.category}:${t.subcategory}')">${t.subcategory.replace(/_/g, ' ')}</span>`;
+                }).join('');
+            }
+            if (post.custom_tags && post.custom_tags.length > 0) {
+                tagsHtml += post.custom_tags.map(t =>
+                    `<span class="post-tag custom">${escapeHtml(t)}</span>`
+                ).join('');
+            }
+
+            html += `
+            <div class="post-card ${post.author_verified ? 'verified-post' : ''}" id="post-${post.id}">
+                <div class="post-meta">
+                    <div class="post-avatar ${post.author_verified ? 'verified-avatar' : ''}">${initial}</div>
+                    <div>
+                        <div class="post-author">${escapeHtml(post.author)} ${verifiedBadge}</div>
+                        <div class="post-info">${post.university} &middot; ${post.created_at}</div>
+                    </div>
+                    <span class="post-badge ${post.category}">${categoryLabel}</span>
+                </div>
+
+                <h3>${escapeHtml(post.title)}</h3>
+                ${tagsHtml ? `<div class="post-tags">${tagsHtml}</div>` : ''}
+                <div class="post-content">${escapeHtml(post.content)}</div>
+
+                <div class="post-actions">
+                    <button class="post-action ${userLiked ? 'liked' : ''}" onclick="likePost('${post.id}', this)">
+                        &#x2764; <span>${post.likes}</span>
+                    </button>
+                    <button class="post-action" onclick="toggleComments('${post.id}')">
+                        &#x1F4AC; <span>${post.comments.length} comments</span>
+                    </button>
+                    <button class="post-action fav-btn ${post.user_favorited ? 'favorited' : ''}" onclick="toggleFavorite('${post.id}', this)">
+                        ${post.user_favorited ? '&#x2605;' : '&#x2606;'} <span>${post.user_favorited ? 'Saved' : 'Save'}</span>
+                    </button>
+                    <button class="post-action share-btn" onclick="toggleShareMenu('${post.id}', event)">
+                        &#x1F517; <span>Share</span>
+                    </button>
+                    ${!post.anonymous && !isOwner && post.author_id !== 'system' ? `<button class="post-action msg-btn" onclick="startConversation('${post.author_id}', '${escapeHtml(post.author)}')">&#x2709; <span>Message</span></button>` : ''}
+                    ${isOwner ? `<button class="post-action delete-btn" onclick="confirmDeletePost('${post.id}')">&#x1F5D1; <span>Delete</span></button>` : ''}
+                </div>
+
+                <!-- Share dropdown menu -->
+                <div class="share-menu" id="share-menu-${post.id}" style="display:none;">
+                    <div class="share-menu-header">Share to:</div>
+                    <div class="share-options">
+                        <button class="share-option" onclick="shareToWeChat('${post.id}', '${escapeHtml(post.title)}')">
+                            <span class="share-icon wechat">&#x1F4AC;</span> WeChat
+                        </button>
+                        <button class="share-option" onclick="shareToLinkedIn('${post.id}', '${escapeHtml(post.title)}')">
+                            <span class="share-icon linkedin">in</span> LinkedIn
+                        </button>
+                        <button class="share-option" onclick="shareToTwitter('${post.id}', '${escapeHtml(post.title)}')">
+                            <span class="share-icon twitter">&#x1D54F;</span> Twitter/X
+                        </button>
+                        <button class="share-option" onclick="copyPostLink('${post.id}')">
+                            <span class="share-icon copy">&#x1F4CB;</span> Copy Link
+                        </button>
+                    </div>
+                </div>
+
+                <div class="comments-section" id="comments-${post.id}">
+                    ${post.comments.length > 0 ? post.comments.map(c => {
+                        const commentVerified = c.author_verified ? '<span class="verified-badge-gold" title="Verified Alumni">&#x2714;</span>' : '';
+                        const repliesHtml = (c.replies || []).slice(0, 3).map(r => {
+                            const replyVerified = r.author_verified ? '<span class="verified-badge-gold small" title="Verified Alumni">&#x2714;</span>' : '';
+                            return `
+                            <div class="reply">
+                                <span class="reply-author">${escapeHtml(r.author)} ${replyVerified}</span>
+                                <span class="reply-date">&middot; ${r.created_at}</span>
+                                <div class="reply-text">${escapeHtml(r.content)}</div>
+                            </div>
+                        `}).join('');
+                        const hasMoreReplies = (c.replies || []).length > 3;
+                        return `
+                        <div class="comment" id="comment-${c.id}">
+                            <span class="comment-author">${escapeHtml(c.author)} ${commentVerified}</span>
+                            <span class="comment-date">&middot; ${c.created_at}</span>
+                            <div class="comment-text">${escapeHtml(c.content)}</div>
+                            <div class="comment-actions">
+                                <button class="reply-btn" onclick="showReplyInput('${post.id}', '${c.id}')">Reply</button>
+                            </div>
+                            <div class="replies-container" id="replies-${c.id}">
+                                ${repliesHtml}
+                                ${hasMoreReplies ? `<button class="view-more-btn" onclick="showAllReplies('${c.id}', this)">View ${(c.replies || []).length - 3} more replies</button>` : ''}
+                            </div>
+                            <div class="reply-input-box" id="reply-input-box-${c.id}" style="display:none;">
+                                <input type="text" placeholder="Write a reply (max 300 chars)..." maxlength="300" id="reply-input-${c.id}" onkeypress="if(event.key==='Enter')addReply('${post.id}', '${c.id}')">
+                                <button class="btn btn-sm btn-secondary" onclick="addReply('${post.id}', '${c.id}')">Reply</button>
+                            </div>
+                        </div>`;
+                    }).join('') : '<div class="no-comments">No comments yet. Be the first to comment!</div>'}
+                    <div class="comment-input">
+                        <input type="text" placeholder="Write a comment..." id="comment-input-${post.id}" onkeypress="if(event.key==='Enter')addComment('${post.id}')">
+                        <button class="btn btn-sm btn-primary" onclick="addComment('${post.id}')">Post</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    });
+}
+
+function getTagCategoryInfo(category) {
+    const categories = {{ tag_categories | tojson }};
+    return categories[category] || {color: '#6366f1', label: category};
+}
+
+function filterByTag(tag) {
+    activeTagFilter = tag;
+    const parts = tag.split(':');
+    document.getElementById('activeFilters').style.display = 'flex';
+    document.getElementById('filterTagLabel').textContent = parts[1].replace(/_/g, ' ');
+    loadPosts();
+}
+
+function clearTagFilter() {
+    activeTagFilter = '';
+    document.getElementById('activeFilters').style.display = 'none';
+    loadPosts();
+}
+
+function likePost(postId, btn) {
+    if (!requireLogin('like posts')) return;
+
+    fetch(`/api/posts/${postId}/like`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (data.liked) {
+                btn.classList.add('liked');
+                showToast('Liked!', 'success');
+            } else {
+                btn.classList.remove('liked');
+                showToast('Like removed', 'info');
+            }
+            btn.querySelector('span').textContent = data.likes;
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function toggleComments(postId) {
+    const section = document.getElementById('comments-' + postId);
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+function addComment(postId) {
+    if (!requireLogin('post comments')) return;
+
+    const input = document.getElementById('comment-input-' + postId);
+    const content = input.value.trim();
+    if (!content) return;
+
+    fetch(`/api/posts/${postId}/comment`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content, anonymous: true})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadPosts();
+            showToast('Comment added!', 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function showReplyInput(postId, commentId) {
+    if (!requireLogin('reply to comments')) return;
+    const box = document.getElementById('reply-input-box-' + commentId);
+    box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+    if (box.style.display === 'flex') {
+        document.getElementById('reply-input-' + commentId).focus();
+    }
+}
+
+function addReply(postId, commentId) {
+    if (!requireLogin('reply to comments')) return;
+
+    const input = document.getElementById('reply-input-' + commentId);
+    const content = input.value.trim();
+    if (!content) return;
+    if (content.length > 300) {
+        showToast('Reply must be 300 characters or less', 'error');
+        return;
+    }
+
+    fetch(`/api/posts/${postId}/comments/${commentId}/reply`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content, anonymous: true})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadPosts();
+            showToast('Reply added!', 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+function showAllReplies(commentId, btn) {
+    // In a real implementation, this would fetch all replies
+    // For now, just hide the button as all data is already loaded
+    btn.style.display = 'none';
+    const container = document.getElementById('replies-' + commentId);
+    container.querySelectorAll('.reply').forEach(r => r.style.display = 'block');
+}
+
+function openModal() {
+    document.getElementById('postModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('postModal').classList.remove('show');
+}
+
+function checkTagLimit(checkbox) {
+    const checked = document.querySelectorAll('input[name="tags"]:checked');
+    if (checked.length > 3) {
+        checkbox.checked = false;
+        showToast('Maximum 3 tags allowed', 'error');
+    }
+}
+
+function addCustomTag() {
+    const input = document.getElementById('customTagInput');
+    const tag = input.value.trim();
+
+    if (!tag) return;
+    if (tag.length < 2 || tag.length > 10) {
+        showToast('Tag must be 2-10 characters', 'error');
+        return;
+    }
+    if (!/^[a-zA-Z0-9\u4e00-\u9fa5]+$/.test(tag)) {
+        showToast('Only Chinese, English, or numbers allowed', 'error');
+        return;
+    }
+    if (customTags.length >= 2) {
+        showToast('Maximum 2 custom tags', 'error');
+        return;
+    }
+    if (customTags.includes(tag)) {
+        showToast('Tag already added', 'error');
+        return;
+    }
+
+    customTags.push(tag);
+    input.value = '';
+    renderCustomTags();
+}
+
+function removeCustomTag(tag) {
+    customTags = customTags.filter(t => t !== tag);
+    renderCustomTags();
+}
+
+function renderCustomTags() {
+    const container = document.getElementById('customTagsList');
+    container.innerHTML = customTags.map(t =>
+        `<span class="custom-tag-chip">${escapeHtml(t)} <button onclick="removeCustomTag('${escapeHtml(t)}')">&times;</button></span>`
+    ).join('');
+}
+
+function loadCustomTagHistory() {
+    fetch('/api/custom-tags-history')
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && data.tags.length > 0) {
+            const container = document.getElementById('customTagHistory');
+            container.innerHTML = '<span class="history-label">Recent:</span> ' +
+                data.tags.map(t =>
+                    `<span class="history-tag" onclick="addHistoryTag('${escapeHtml(t)}')">${escapeHtml(t)}</span>`
+                ).join('');
+        }
+    }).catch(() => {});
+}
+
+function addHistoryTag(tag) {
+    if (customTags.length >= 2 || customTags.includes(tag)) return;
+    customTags.push(tag);
+    renderCustomTags();
+}
+
+function submitPost() {
+    const title = document.getElementById('postTitle').value.trim();
+    const content = document.getElementById('postContent').value.trim();
+    const category = document.getElementById('postCategory').value;
+    const faculty = document.getElementById('postFaculty').value;
+    const university = document.getElementById('postUniversity').value;
+    const author = document.getElementById('postAuthor').value.trim();
+    const anonymous = document.getElementById('postAnonymous').checked;
+    const errMsg = document.getElementById('postError');
+
+    if (!title || !content) {
+        errMsg.textContent = 'Please fill in the title and your story.';
+        errMsg.style.display = 'block';
+        return;
+    }
+
+    // Collect selected tags
+    const selectedTags = [];
+    document.querySelectorAll('input[name="tags"]:checked').forEach(cb => {
+        const [cat, sub] = cb.value.split(':');
+        selectedTags.push({category: cat, subcategory: sub});
+    });
+
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Posting...';
+    btn.disabled = true;
+    errMsg.style.display = 'none';
+
+    fetch('/api/posts', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({title, content, category, faculty, university, author, anonymous, tags: selectedTags, custom_tags: customTags})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            closeModal();
+            loadPosts();
+            // Reset form
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+            document.getElementById('postAuthor').value = '';
+            document.querySelectorAll('input[name="tags"]:checked').forEach(cb => cb.checked = false);
+            customTags = [];
+            renderCustomTags();
+            showToast('Post shared successfully!', 'success');
+        } else {
+            errMsg.textContent = data.message;
+            errMsg.style.display = 'block';
+        }
+        btn.textContent = 'Share Experience';
+        btn.disabled = false;
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function toggleFavorite(postId, btn) {
+    if (!requireLogin('save favorites')) return;
+
+    fetch(`/api/posts/${postId}/favorite`, {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (data.favorited) {
+                btn.classList.add('favorited');
+                btn.innerHTML = '&#x2605; <span>Saved</span>';
+                showToast('Added to favorites', 'success');
+            } else {
+                btn.classList.remove('favorited');
+                btn.innerHTML = '&#x2606; <span>Save</span>';
+                showToast('Removed from favorites', 'info');
+            }
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+// Share functionality
+function toggleShareMenu(postId, event) {
+    event.stopPropagation();
+    const menu = document.getElementById('share-menu-' + postId);
+    // Close other share menus
+    document.querySelectorAll('.share-menu').forEach(m => {
+        if (m.id !== 'share-menu-' + postId) m.style.display = 'none';
+    });
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Close share menus when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.share-menu') && !e.target.closest('.share-btn')) {
+        document.querySelectorAll('.share-menu').forEach(m => m.style.display = 'none');
+    }
+});
+
+function shareToWeChat(postId, title) {
+    // WeChat requires QR code generation or web share API
+    const url = `${window.location.origin}/experience-sharing?post=${postId}`;
+    // Show a modal with QR code (simplified - in production use a QR library)
+    showToast('WeChat: Copy the link and share in WeChat', 'info');
+    copyToClipboard(url);
+}
+
+function shareToLinkedIn(postId, title) {
+    const url = encodeURIComponent(`${window.location.origin}/experience-sharing?post=${postId}`);
+    const text = encodeURIComponent(`Check out this career experience: ${title}`);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'width=600,height=400');
+    showToast('Opening LinkedIn...', 'success');
+}
+
+function shareToTwitter(postId, title) {
+    const url = encodeURIComponent(`${window.location.origin}/experience-sharing?post=${postId}`);
+    const text = encodeURIComponent(`${title} - Check out this career experience on HK Career Compass!`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
+    showToast('Opening Twitter...', 'success');
+}
+
+function copyPostLink(postId) {
+    const url = `${window.location.origin}/experience-sharing?post=${postId}`;
+    copyToClipboard(url);
+    showToast('Link copied to clipboard!', 'success');
+    document.querySelectorAll('.share-menu').forEach(m => m.style.display = 'none');
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+    } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    }
+}
+
+// Delete functionality
+function confirmDeletePost(postId) {
+    if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+        deletePost(postId);
+    }
+}
+
+function deletePost(postId) {
+    fetch(`/api/posts/${postId}`, {method: 'DELETE'})
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Post deleted successfully', 'success');
+            // Remove the post from DOM
+            const postCard = document.getElementById('post-' + postId);
+            if (postCard) {
+                postCard.style.transition = 'opacity 0.3s, transform 0.3s';
+                postCard.style.opacity = '0';
+                postCard.style.transform = 'translateX(-20px)';
+                setTimeout(() => postCard.remove(), 300);
+            }
+        } else {
+            showToast(data.message || 'Failed to delete post', 'error');
+        }
+    })
+    .catch(err => {
+        showToast('Error deleting post', 'error');
+    });
+}
+
+// Start a conversation with a user
+function startConversation(userId, userName) {
+    if (!requireLogin('send messages')) return;
+    
+    // Redirect to messages page with the user
+    window.location.href = `/messages?user=${userId}&name=${encodeURIComponent(userName)}`;
+}
+</script>
+{% endblock %}
